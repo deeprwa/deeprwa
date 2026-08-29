@@ -2,16 +2,15 @@ import streamlit as st
 import requests
 import json
 from datetime import datetime
+import uuid
 import base64
 from pathlib import Path
-import uuid
 
 # ============ PAGE CONFIGURATION ============
 st.set_page_config(
-    page_title="DeepRWA - AI Assistant for Rwanda",
+    page_title="DeepRWA",
     page_icon="av.png",  # Your custom favicon
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # ============ CUSTOM CSS ============
@@ -24,32 +23,35 @@ st.markdown("""
     
     /* Main container */
     .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 0rem;
-        max-width: 1200px;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0rem !important;
+        max-width: 1000px;
     }
     
-    /* Sidebar styling */
+    /* Sidebar */
     .css-1d391kg {
-        background-color: #f8f9fa;
-        border-right: 1px solid #e0e0e0;
+        background-color: #f7f7f8;
+        padding-top: 2rem !important;
+        border-right: 1px solid #e5e5e5;
+        width: 280px !important;
     }
     
     /* Chat messages */
     .stChatMessage {
         background-color: transparent !important;
-        padding: 8px 0 !important;
+        padding: 4px 0 !important;
     }
     
     .stChatMessage .stMarkdown {
-        padding: 10px 16px;
+        padding: 12px 16px;
         border-radius: 16px;
-        margin: 4px 0;
+        margin: 2px 0;
         max-width: 80%;
         word-wrap: break-word;
+        font-size: 15px;
+        line-height: 1.6;
     }
     
-    /* User messages */
     .stChatMessage[data-testid="user"] .stMarkdown {
         background-color: #1E88E5;
         color: white;
@@ -57,11 +59,23 @@ st.markdown("""
         border-bottom-right-radius: 4px;
     }
     
-    /* Assistant messages */
     .stChatMessage[data-testid="assistant"] .stMarkdown {
         background-color: #f0f2f6;
         color: #1a1a1a;
         border-bottom-left-radius: 4px;
+    }
+    
+    /* Chat input */
+    .stTextInput > div > div > input {
+        border-radius: 25px;
+        padding: 12px 20px;
+        font-size: 15px;
+        border: 1px solid #e5e5e5;
+        background-color: white;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #1E88E5;
+        box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
     }
     
     /* Timestamp */
@@ -70,120 +84,105 @@ st.markdown("""
         color: #999;
         margin-top: 2px;
         display: block;
-        clear: both;
     }
     
-    /* Chat input */
-    .stTextInput > div > div > input {
-        border-radius: 25px;
-        padding: 12px 20px;
-        font-size: 15px;
-        border: 2px solid #e0e0e0;
-        background-color: white;
-    }
-    .stTextInput > div > div > input:focus {
-        border-color: #1E88E5;
-        box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.15);
-    }
-    
-    /* Buttons */
+    /* Sidebar button */
     .stButton > button {
-        background-color: #1E88E5;
-        color: white;
-        border-radius: 20px;
-        padding: 8px 20px;
-        font-weight: 500;
-        border: none;
+        background-color: transparent;
+        color: #1a1a1a;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-weight: 400;
+        font-size: 14px;
         transition: all 0.2s ease;
         width: 100%;
-    }
-    .stButton > button:hover {
-        background-color: #1565C0;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
-    }
-    
-    /* Avatar in chat messages */
-    .avatar-container {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-    .avatar-img {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-    .avatar-img-small {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-    
-    /* Sidebar avatar */
-    .sidebar-avatar {
-        display: block;
-        margin: 0 auto 16px auto;
-        width: 120px;
-        border-radius: 50%;
-        border: 3px solid #1E88E5;
-        padding: 4px;
-        background: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    /* Chat list items */
-    .chat-list-item {
-        padding: 8px 12px;
-        margin: 4px 0;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        font-size: 0.9rem;
-        background-color: transparent;
-        border: none;
         text-align: left;
-        width: 100%;
-        color: #333;
         display: flex;
         align-items: center;
         gap: 8px;
     }
-    .chat-list-item:hover {
-        background-color: #e8f0fe;
+    .stButton > button:hover {
+        background-color: #e5e5e5;
+        border-color: #d1d1d1;
     }
-    .chat-list-item.active {
-        background-color: #d2e3fc;
-        font-weight: 500;
+    
+    /* Sidebar divider */
+    .sidebar-divider {
+        border: none;
+        border-top: 1px solid #e5e5e5;
+        margin: 8px 0;
     }
-    .chat-list-item .chat-time {
-        font-size: 0.7rem;
-        color: #888;
+    
+    /* Sidebar logo area */
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 4px 16px 4px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 16px;
+    }
+    .sidebar-logo img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+    .sidebar-logo span {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    
+    /* Chat list items */
+    .chat-item {
+        padding: 8px 12px;
+        margin: 2px 0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #1a1a1a;
+        border: none;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .chat-item:hover {
+        background-color: #e5e5e5;
+    }
+    .chat-item.active {
+        background-color: #e5e5e5;
+    }
+    .chat-item .time {
+        font-size: 11px;
+        color: #999;
         margin-left: auto;
         white-space: nowrap;
     }
     
-    /* Sidebar section titles */
-    .sidebar-title {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #555;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 16px 0 8px 0;
-        padding: 0 4px;
-    }
-    
-    /* Divider */
-    .sidebar-divider {
-        margin: 12px 0;
+    /* New chat button style */
+    .new-chat-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background-color: #e5e5e5;
+        border-radius: 8px;
+        font-weight: 500;
+        color: #1a1a1a;
+        cursor: pointer;
+        transition: background 0.2s;
         border: none;
-        border-top: 1px solid #e0e0e0;
+        width: 100%;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .new-chat-btn:hover {
+        background-color: #d1d1d1;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -194,8 +193,6 @@ if "chats" not in st.session_state:
 if "current_chat_id" not in st.session_state:
     st.session_state.current_chat_id = str(uuid.uuid4())
     st.session_state.chats[st.session_state.current_chat_id] = []
-if "chat_counter" not in st.session_state:
-    st.session_state.chat_counter = 1
 
 # ============ SYSTEM PROMPT ============
 SYSTEM_PROMPT = """You are DeepRWA, a professional AI assistant specialized in Rwanda.
@@ -203,7 +200,6 @@ SYSTEM_PROMPT = """You are DeepRWA, a professional AI assistant specialized in R
 **About Me:**
 - Created by Emmanuel Mukiza under his company "The Star🌟"
 - Emmanuel graduated from Karenge Adventist Secondary School (KASS) with an Advanced Level certificate in Computer System and Architecture (CSA)
-- He is passionate about technology, AI systems, and solving real-world problems
 
 **Your Core Rule:**
 - You must ONLY answer questions related to Rwanda.
@@ -272,75 +268,80 @@ def get_ai_response(user_input, chat_history):
         return "You're very welcome! 😊 Feel free to ask me anything else about Rwanda."
     
     if "who are you" in user_lower:
-        return "I'm DeepRWA, your AI assistant specialized in Rwanda! 🇷🇼 I was created by Emmanuel Mukiza to help people learn about Rwanda."
+        return "I'm DeepRWA, your AI assistant specialized in Rwanda! I was created by Emmanuel Mukiza."
     
     if "capital" in user_lower:
-        return "The capital of Rwanda is **Kigali**! 🇷🇼 It's the country's political, economic, and cultural center."
+        return "The capital of Rwanda is **Kigali**. It's the country's political, economic, and cultural center."
     
     if "culture" in user_lower:
-        return "Rwanda has a rich cultural heritage! 🎭 Traditional Intore dance, vibrant arts and crafts, and community values like Umuganda are central to Rwandan culture."
+        return "Rwanda has a rich cultural heritage! Traditional Intore dance, vibrant arts and crafts, and community values like Umuganda are central to Rwandan culture."
     
     if "tourism" in user_lower or "tourist" in user_lower:
-        return "Rwanda is famous for its mountain gorillas in Volcanoes National Park, beautiful Lake Kivu, Nyungwe Forest, and Akagera National Park! 🦍"
+        return "Rwanda is famous for its mountain gorillas in Volcanoes National Park, beautiful Lake Kivu, Nyungwe Forest, and Akagera National Park!"
     
     if "emmanuel" in user_lower or "creator" in user_lower:
         return "Emmanuel Mukiza is a Rwandan technology enthusiast and the creator of DeepRWA. He founded The Star🌟 to innovate and contribute to Rwanda's development!"
     
     if "rwanda" in user_lower:
-        return "I'm here to help with anything about Rwanda! 🇷🇼 Feel free to ask me about its culture, history, tourism, famous people, or any specific topic you're curious about."
+        return "I'm here to help with anything about Rwanda! Feel free to ask me about its culture, history, tourism, famous people, or any specific topic you're curious about."
     
-    return "I'm DeepRWA, specialized in Rwanda 🇷🇼 I can help you with Rwandan culture, history, tourism, famous people, and more. What would you like to know about Rwanda?"
+    return "I'm DeepRWA, specialized in Rwanda. I can help you with Rwandan culture, history, tourism, famous people, and more. What would you like to know about Rwanda?"
 
 # ============ SIDEBAR ============
 with st.sidebar:
-    # Avatar in sidebar
-    st.image("av.png", use_container_width=True, output_format="PNG")
-    st.markdown("---")
-    
-    st.markdown("### 💬 Chats")
+    # Logo and title (using av.png)
+    if Path("av.png").exists():
+        with open("av.png", "rb") as f:
+            img_data = base64.b64encode(f.read()).decode()
+        st.markdown(f"""
+            <div class="sidebar-logo">
+                <img src="data:image/png;base64,{img_data}" alt="DeepRWA">
+                <span>DeepRWA</span>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div class="sidebar-logo">
+                <span style="font-size:24px;font-weight:700;color:#1a1a1a;">DeepRWA</span>
+            </div>
+        """, unsafe_allow_html=True)
     
     # New Chat button
-    if st.button("➕ New Chat", use_container_width=True):
+    if st.button("+ New Chat", key="new_chat_btn", use_container_width=True):
         new_id = str(uuid.uuid4())
         st.session_state.current_chat_id = new_id
         st.session_state.chats[new_id] = []
-        st.session_state.chat_counter += 1
         st.rerun()
     
-    st.divider()
+    st.markdown('<hr class="sidebar-divider">', unsafe_allow_html=True)
     
     # Chat list
     if st.session_state.chats:
         for chat_id, messages in st.session_state.chats.items():
-            first_msg = "New Chat"
-            for msg in messages:
-                if msg["role"] == "user":
-                    first_msg = msg["content"][:25] + ("..." if len(msg["content"]) > 25 else "")
-                    break
-            
-            chat_time = ""
             if messages:
-                last_msg = messages[-1]
-                chat_time = datetime.now().strftime("%I:%M %p")
-            
-            is_active = chat_id == st.session_state.current_chat_id
-            label = f"💬 {first_msg} ({chat_time})" if chat_time else f"💬 {first_msg}"
-            
-            if st.button(label, key=f"chat_{chat_id}", use_container_width=True):
-                st.session_state.current_chat_id = chat_id
-                st.rerun()
-    
-    st.divider()
-    st.caption("🇷🇼 DeepRWA · Your AI Assistant for Rwanda")
+                first_msg = "New Chat"
+                for msg in messages:
+                    if msg["role"] == "user":
+                        first_msg = msg["content"][:25] + ("..." if len(msg["content"]) > 25 else "")
+                        break
+                
+                time_str = datetime.now().strftime("%I:%M %p")
+                
+                if chat_id == st.session_state.current_chat_id:
+                    st.markdown(f"""
+                        <button class="chat-item active">
+                            💬 {first_msg}
+                            <span class="time">{time_str}</span>
+                        </button>
+                    """, unsafe_allow_html=True)
+                else:
+                    if st.button(f"💬 {first_msg} ({time_str})", key=f"chat_{chat_id}", use_container_width=True):
+                        st.session_state.current_chat_id = chat_id
+                        st.rerun()
 
 # ============ MAIN CHAT AREA ============
-# Title with avatar in header
-col1, col2 = st.columns([1, 12])
-with col1:
-    st.image("av.png", width=40)
-with col2:
-    st.title("DeepRWA")
-    st.caption("Your AI assistant for Rwanda")
+st.title("DeepRWA")
+st.caption("Your AI assistant for Rwanda")
 
 st.divider()
 
@@ -356,11 +357,8 @@ if current_messages:
     for idx, message in enumerate(current_messages):
         with st.chat_message(message["role"], avatar="av.png" if message["role"] == "assistant" else None):
             st.markdown(message["content"])
-            # Add timestamp for each message (only show for the last 3 messages to avoid clutter)
-            if idx >= len(current_messages) - 5:
-                st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
+            st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
 else:
-    # Welcome message
     with st.chat_message("assistant", avatar="av.png"):
         st.markdown("Hello! 👋 I'm **DeepRWA**, your AI assistant for Rwanda. I'm here to help you discover Rwanda's culture, history, tourism, and more. What would you like to know?")
         st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
@@ -368,7 +366,7 @@ else:
 # ============ CHAT INPUT ============
 if prompt := st.chat_input("Ask me anything about Rwanda..."):
     # Add user message
-    user_message = {"role": "user", "content": prompt, "timestamp": datetime.now().isoformat()}
+    user_message = {"role": "user", "content": prompt}
     current_messages.append(user_message)
     
     # Display user message
@@ -384,8 +382,7 @@ if prompt := st.chat_input("Ask me anything about Rwanda..."):
             st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
     
     # Add assistant message
-    assistant_message = {"role": "assistant", "content": response, "timestamp": datetime.now().isoformat()}
-    current_messages.append(assistant_message)
+    current_messages.append({"role": "assistant", "content": response})
     
     # Save to session
     st.session_state.chats[st.session_state.current_chat_id] = current_messages
