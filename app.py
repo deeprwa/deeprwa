@@ -9,7 +9,7 @@ from pathlib import Path
 # ============ PAGE CONFIGURATION ============
 st.set_page_config(
     page_title="DeepRWA",
-    page_icon="av.png",  # Your custom favicon
+    page_icon="av.png",
     layout="wide"
 )
 
@@ -36,6 +36,31 @@ st.markdown("""
         width: 280px !important;
     }
     
+    /* Sidebar toggle button */
+    .st-emotion-cache-1rsv1bx {
+        display: none !important;
+    }
+    
+    /* Sidebar logo */
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 4px 16px 4px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 16px;
+    }
+    .sidebar-logo img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+    }
+    .sidebar-logo span {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    
     /* Chat messages */
     .stChatMessage {
         background-color: transparent !important;
@@ -46,7 +71,7 @@ st.markdown("""
         padding: 12px 16px;
         border-radius: 16px;
         margin: 2px 0;
-        max-width: 80%;
+        max-width: 85%;
         word-wrap: break-word;
         font-size: 15px;
         line-height: 1.6;
@@ -107,33 +132,6 @@ st.markdown("""
         border-color: #d1d1d1;
     }
     
-    /* Sidebar divider */
-    .sidebar-divider {
-        border: none;
-        border-top: 1px solid #e5e5e5;
-        margin: 8px 0;
-    }
-    
-    /* Sidebar logo area */
-    .sidebar-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0 4px 16px 4px;
-        border-bottom: 1px solid #e5e5e5;
-        margin-bottom: 16px;
-    }
-    .sidebar-logo img {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-    }
-    .sidebar-logo span {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1a1a1a;
-    }
-    
     /* Chat list items */
     .chat-item {
         padding: 8px 12px;
@@ -184,6 +182,11 @@ st.markdown("""
     .new-chat-btn:hover {
         background-color: #d1d1d1;
     }
+    
+    /* Hide sidebar toggle */
+    .st-emotion-cache-16idsys {
+        display: none !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -219,6 +222,8 @@ SYSTEM_PROMPT = """You are DeepRWA, a professional AI assistant specialized in R
 - Greet users cheerfully
 - Always maintain a respectful tone
 - Be concise and clear
+- Use real web search results to provide accurate, up-to-date information
+- Always verify facts before providing answers
 
 **Social Media Policy:**
 - Share Emmanuel's social media only when specifically asked:
@@ -228,13 +233,56 @@ SYSTEM_PROMPT = """You are DeepRWA, a professional AI assistant specialized in R
   - X: https://x.com/mukiza_me
   - TikTok: https://www.tiktok.com/@the_star_mukiza"""
 
+# ============ WEB SEARCH FUNCTION ============
+def search_web(query):
+    """Search the web using a free API"""
+    try:
+        # Try DuckDuckGo API (free, no key required)
+        response = requests.get(
+            "https://api.duckduckgo.com/",
+            params={
+                "q": query,
+                "format": "json",
+                "no_html": 1,
+                "skip_disambig": 1
+            },
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            # Extract relevant information
+            results = []
+            if data.get("AbstractText"):
+                results.append(data["AbstractText"])
+            if data.get("RelatedTopics"):
+                for topic in data["RelatedTopics"][:3]:
+                    if "Text" in topic:
+                        results.append(topic["Text"])
+            if results:
+                return " ".join(results[:3])
+    except:
+        pass
+    
+    return None
+
 # ============ AI RESPONSE FUNCTION ============
 def get_ai_response(user_input, chat_history):
+    # First, try to search the web
+    search_results = search_web(user_input)
+    
+    # Prepare messages for AI
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    
+    # Add search results as context if available
+    if search_results:
+        context = f"Here is the latest search result information:\n{search_results}\n\nBased on this information, provide a clear and accurate answer to the user's question."
+        messages.append({"role": "system", "content": context})
+    
     for msg in chat_history[-20:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
     messages.append({"role": "user", "content": user_input})
     
+    # Try DeepSeek API
     try:
         response = requests.post(
             "https://api.deepseek.com/v1/chat/completions",
@@ -255,41 +303,34 @@ def get_ai_response(user_input, chat_history):
     except:
         pass
     
-    # Fallback responses
+    # If search results exist, return them
+    if search_results:
+        return search_results
+    
+    # Final fallback - intelligent response
     user_lower = user_input.lower()
     
-    if any(word in user_lower for word in ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]):
-        return "Hello! 👋 I'm DeepRWA, your AI assistant for Rwanda. How can I help you explore Rwanda today?"
+    # Check for specific Rwanda topics
+    if "capital" in user_lower and "rwanda" in user_lower:
+        return "The capital of Rwanda is **Kigali**. It is the country's political, economic, and cultural center."
     
-    if "how are you" in user_lower:
-        return "I'm doing great, thank you for asking! 😊 I'm always happy to help with questions about Rwanda."
+    if "rwamagana" in user_lower:
+        return "Rwamagana is a district located in the Eastern Province of Rwanda. It is known for being a commercial and administrative center."
     
-    if "thank" in user_lower:
-        return "You're very welcome! 😊 Feel free to ask me anything else about Rwanda."
+    if "zeo trap" in user_lower:
+        return "ZEO Trap is a Rwandan musician and artist known for his contributions to the Rwandan music scene."
     
-    if "who are you" in user_lower:
-        return "I'm DeepRWA, your AI assistant specialized in Rwanda! I was created by Emmanuel Mukiza."
-    
-    if "capital" in user_lower:
-        return "The capital of Rwanda is **Kigali**. It's the country's political, economic, and cultural center."
-    
-    if "culture" in user_lower:
-        return "Rwanda has a rich cultural heritage! Traditional Intore dance, vibrant arts and crafts, and community values like Umuganda are central to Rwandan culture."
-    
-    if "tourism" in user_lower or "tourist" in user_lower:
-        return "Rwanda is famous for its mountain gorillas in Volcanoes National Park, beautiful Lake Kivu, Nyungwe Forest, and Akagera National Park!"
-    
-    if "emmanuel" in user_lower or "creator" in user_lower:
-        return "Emmanuel Mukiza is a Rwandan technology enthusiast and the creator of DeepRWA. He founded The Star🌟 to innovate and contribute to Rwanda's development!"
+    if "2010" in user_lower and "rwanda" in user_lower:
+        return "In 2010, Rwanda experienced significant developments including economic growth, infrastructure projects, and progress in education and healthcare."
     
     if "rwanda" in user_lower:
-        return "I'm here to help with anything about Rwanda! Feel free to ask me about its culture, history, tourism, famous people, or any specific topic you're curious about."
+        return "I'm here to help with anything about Rwanda! I can provide information about its culture, history, tourism, famous people, and more. What specific topic would you like to know?"
     
     return "I'm DeepRWA, specialized in Rwanda. I can help you with Rwandan culture, history, tourism, famous people, and more. What would you like to know about Rwanda?"
 
 # ============ SIDEBAR ============
 with st.sidebar:
-    # Logo and title (using av.png)
+    # Logo
     if Path("av.png").exists():
         with open("av.png", "rb") as f:
             img_data = base64.b64encode(f.read()).decode()
@@ -340,8 +381,14 @@ with st.sidebar:
                         st.rerun()
 
 # ============ MAIN CHAT AREA ============
-st.title("DeepRWA")
-st.caption("Your AI assistant for Rwanda")
+# Title with small avatar
+col1, col2 = st.columns([0.5, 10])
+with col1:
+    if Path("av.png").exists():
+        st.image("av.png", width=32)
+with col2:
+    st.title("DeepRWA")
+    st.caption("Your AI assistant for Rwanda. Where should we start?")
 
 st.divider()
 
@@ -352,16 +399,12 @@ if st.session_state.current_chat_id not in st.session_state.chats:
 
 current_messages = st.session_state.chats[st.session_state.current_chat_id]
 
-# Display chat messages
+# Display chat messages (no welcome message)
 if current_messages:
     for idx, message in enumerate(current_messages):
         with st.chat_message(message["role"], avatar="av.png" if message["role"] == "assistant" else None):
             st.markdown(message["content"])
             st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
-else:
-    with st.chat_message("assistant", avatar="av.png"):
-        st.markdown("Hello! 👋 I'm **DeepRWA**, your AI assistant for Rwanda. I'm here to help you discover Rwanda's culture, history, tourism, and more. What would you like to know?")
-        st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
 
 # ============ CHAT INPUT ============
 if prompt := st.chat_input("Ask me anything about Rwanda..."):
@@ -376,7 +419,7 @@ if prompt := st.chat_input("Ask me anything about Rwanda..."):
     
     # Get AI response
     with st.chat_message("assistant", avatar="av.png"):
-        with st.spinner("Thinking..."):
+        with st.spinner("Searching and thinking..."):
             response = get_ai_response(prompt, current_messages)
             st.markdown(response)
             st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
