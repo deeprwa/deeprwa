@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
 import json
-import os
+from datetime import datetime
+import base64
+from pathlib import Path
 
 # Set page configuration
 st.set_page_config(
@@ -10,140 +12,181 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for better appearance
+# Custom CSS for professional look
 st.markdown("""
     <style>
-    .stTextInput > div > div > input {
-        font-size: 16px;
+    /* Main container */
+    .main .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+        max-width: 1200px;
     }
+    
+    /* Chat container */
+    .stChatMessage {
+        background-color: transparent !important;
+    }
+    
+    .stChatMessage .stMarkdown {
+        padding: 10px 15px;
+        border-radius: 12px;
+        margin: 5px 0;
+    }
+    
+    /* User message */
+    .stChatMessage[data-testid="user"] .stMarkdown {
+        background-color: #1E88E5;
+        color: white;
+    }
+    
+    /* Assistant message */
+    .stChatMessage[data-testid="assistant"] .stMarkdown {
+        background-color: #f0f2f6;
+        color: #1a1a1a;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #f8f9fa;
+    }
+    
+    /* Hide default Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    /* Chat input styling */
+    .stTextInput > div > div > input {
+        border-radius: 25px;
+        padding: 12px 20px;
+        font-size: 16px;
+        border: 2px solid #e0e0e0;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #1E88E5;
+        box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.2);
+    }
+    
+    /* Button styling */
     .stButton > button {
         background-color: #1E88E5;
         color: white;
         border-radius: 20px;
-        padding: 10px 24px;
-        font-weight: 600;
+        padding: 8px 20px;
+        font-weight: 500;
+        border: none;
+        transition: all 0.3s ease;
     }
     .stButton > button:hover {
         background-color: #1565C0;
-        color: white;
+        box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
+        transform: translateY(-1px);
     }
-    .stApp {
-        max-width: 800px;
-        margin: 0 auto;
+    
+    /* Sidebar button styling */
+    .sidebar .stButton > button {
+        width: 100%;
+        margin: 4px 0;
+    }
+    
+    /* Chat container width */
+    .stChatMessageContainer {
+        max-width: 100% !important;
+    }
+    
+    /* Message timestamp */
+    .timestamp {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 2px;
+        display: block;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state for chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": "Hello! I'm DeepRWA, your AI assistant specialized in Rwanda. How can I help you today?"}
-    ]
+# Initialize session state
+if "chats" not in st.session_state:
+    st.session_state.chats = {}
+    
+if "current_chat_id" not in st.session_state:
+    import uuid
+    st.session_state.current_chat_id = str(uuid.uuid4())
+    st.session_state.chats[st.session_state.current_chat_id] = []
 
-if "new_chat" not in st.session_state:
-    st.session_state.new_chat = False
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Title and description
-st.title("🇷🇼 DeepRWA")
-st.caption("Your AI assistant for Rwanda. Where should we start right now?")
-
-# Sidebar for chat management
-with st.sidebar:
-    st.header("Chat Management")
-    
-    if st.button("➕ New Chat", use_container_width=True):
-        st.session_state.messages = [
-            {"role": "assistant", "content": "Hello! I'm DeepRWA, your AI assistant specialized in Rwanda. How can I help you today?"}
-        ]
-        st.session_state.new_chat = True
-        st.rerun()
-    
-    if st.button("🗑️ Delete All Chats", use_container_width=True):
-        st.session_state.messages = [
-            {"role": "assistant", "content": "Hello! I'm DeepRWA, your AI assistant specialized in Rwanda. How can I help you today?"}
-        ]
-        st.rerun()
-    
-    st.divider()
-    
-    # Display chat history count
-    st.info(f"📝 {len([m for m in st.session_state.messages if m['role'] == 'user'])} messages in this chat")
-    
-    st.divider()
-    
-    # About the agent
-    st.markdown("### About DeepRWA")
-    st.markdown("""
-    **Created by:** Emmanuel Mukiza  
-    **Company:** The Star🌟  
-    **Purpose:** Providing accurate information about Rwanda
-    """)
-
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# The system prompt for DeepRWA
-SYSTEM_PROMPT = """You are DeepRWA, a professional AI assistant specialized only in information about Rwanda.
+# System prompt
+SYSTEM_PROMPT = """You are DeepRWA, a professional AI assistant specialized in Rwanda.
 
 **About Me:**
-- I was created by Emmanuel Mukiza, a Rwandan national, under his developing company "The Star🌟".
-- The Star🌟 was launched on August 8, 2023, and is a two-person team dedicated to innovation and technology.
-- Emmanuel graduated from Karenge Adventist Secondary School (KASS) with an Advanced Level (A-level) certificate in Computer System and Architecture (CSA). CSA is a combination that focuses on understanding both the hardware and software components of computer systems, including topics like computer architecture, operating systems, and system design.
-- He is passionate about technology, AI systems, and both technical and soft skills (hardware and software). His goal is to understand how technology works globally and to participate in solving real-world problems.
-- He aims to pursue a career in AI and contribute to Rwanda's development on a global scale.
-- He created DeepRWA to make information about Rwanda easily accessible to everyone, including Rwandans, foreigners, and visitors, so that anyone can have accurate information about the country.
+- Created by Emmanuel Mukiza under his company "The Star🌟"
+- Emmanuel graduated from Karenge Adventist Secondary School (KASS) with an Advanced Level certificate in Computer System and Architecture (CSA)
+- He is passionate about technology, AI systems, and solving real-world problems
+- DeepRWA makes information about Rwanda easily accessible to everyone
 
 **Your Core Rule:**
 - You must ONLY answer questions related to Rwanda.
-- If a user asks about any other country or topic, you must politely and clearly state that you are a specialist on Rwanda and cannot answer questions about other topics.
+- For questions about greetings, emotions, or personal matters, respond warmly but remind the user of your Rwanda focus.
+- If a user asks about other countries, politely state you specialize in Rwanda.
 
 **Your Main Topics:**
-1.  **Location Finder:** Provide accurate information on Rwanda's provinces, districts, sectors, cells, and villages.
-2.  **Product & Price Finder:** Share information on where to find specific products in Rwanda and their typical price ranges.
-3.  **Famous People:** Provide biographies and information about notable Rwandans in entertainment, politics, sports, and history.
-4.  **History & Culture:** Provide detailed, factual information on Rwanda's history, from kingdoms to the present, and its rich cultural traditions.
-5.  **Tourism & Travel:** Provide information about tourist attractions, national parks (e.g., Volcanoes National Park, Nyungwe Forest), and general travel tips for visitors to Rwanda.
-6.  **Events & News:** Share information about current events, upcoming festivals, and major news happening in Rwanda.
+1. Location Finder: Provinces, districts, sectors, cells, villages
+2. Product & Price Finder: Where to find products and price ranges
+3. Famous People: Biographies of notable Rwandans
+4. History & Culture: Rwanda's history and cultural traditions
+5. Tourism & Travel: Tourist attractions, national parks, travel tips
+6. Events & News: Current events and festivals in Rwanda
 
-**Rules for Your Responses:**
-- Always prioritize factual accuracy. Use your knowledge to provide accurate information.
-- If you cannot find a definitive answer, politely tell the user you could not find the information.
-- Be concise, clear, and easy to understand.
-- Always maintain a respectful tone, especially on sensitive topics like Rwanda's history.
-- For questions not related to Rwanda, politely state: "I am specialized only in topics about Rwanda. I cannot answer questions about other countries or topics."
+**Response Rules:**
+- Be warm, friendly, and conversational
+- Greet users cheerfully
+- For greetings, respond with a warm welcome
+- For personal questions, respond naturally but steer towards Rwanda topics
+- Always maintain a respectful tone
+- Be concise and clear
 
 **Social Media Policy:**
-- You know Emmanuel's social media accounts, but you should only share them if a user specifically asks for them (e.g., "What are Emmanuel's social media accounts?").
-- If a user asks for them, share the links:
-    - YouTube: https://www.youtube.com/@Th_estarME
-    - Instagram: https://www.instagram.com/mukiza_me/
-    - Facebook: https://web.facebook.com/meMukiza
-    - X (Twitter): https://x.com/mukiza_me
-    - TikTok: https://www.tiktok.com/@the_star_mukiza
-- For any other questions related to Emmanuel or The Star🌟, provide a clear and helpful answer without automatically including the social media links. However you can mention a if you want I can share his social medias after a user asked a related question."""
+- Share Emmanuel's social media only when specifically asked however you can suggest to provide it for related users' questions:
+  - YouTube: https://www.youtube.com/@Th_estarME
+  - Instagram: https://www.instagram.com/mukiza_me/
+  - Facebook: https://web.facebook.com/meMukiza
+  - X: https://x.com/mukiza_me
+  - TikTok: https://www.tiktok.com/@the_star_mukiza"""
 
-# Function to get AI response using free DeepSeek API
-def get_ai_response(user_input):
-    # Prepare the messages
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT}
-    ]
+def get_ai_response(user_input, chat_history):
+    # Prepare messages
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
-    # Add conversation history (last 10 messages for context)
-    for msg in st.session_state.messages[-10:]:
+    # Add chat history (last 20 messages for context)
+    for msg in chat_history[-20:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
     
     messages.append({"role": "user", "content": user_input})
     
+    # Try free API first
     try:
-        # Use DeepSeek's free API (no key required for basic usage)
         response = requests.post(
             "https://api.deepseek.com/v1/chat/completions",
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer sk-..."  # Note: You may need a free key from DeepSeek
+                "Authorization": "Bearer sk-..."
             },
             json={
                 "model": "deepseek-chat",
@@ -153,63 +196,146 @@ def get_ai_response(user_input):
             },
             timeout=30
         )
-        
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"]
-        else:
-            # Fallback: Try a local response or a simpler API
-            return get_fallback_response(user_input)
+    except:
+        pass
     
-    except Exception as e:
-        return get_fallback_response(user_input)
+    # Fallback responses
+    user_lower = user_input.lower()
+    
+    # Greetings
+    if any(word in user_lower for word in ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"]):
+        return "Hello! 😊 I'm DeepRWA, your AI assistant for Rwanda. How can I help you explore Rwanda today?"
+    
+    if "how are you" in user_lower:
+        return "I'm doing great, thank you for asking! 😊 I'm always happy to help with questions about Rwanda. What would you like to know?"
+    
+    if "thank" in user_lower:
+        return "You're very welcome! 😊 Feel free to ask me anything else about Rwanda."
+    
+    if "who are you" in user_lower:
+        return "I'm DeepRWA, your AI assistant specialized in Rwanda! 🇷🇼 I was created by Emmanuel Mukiza to help people learn about Rwanda's culture, history, tourism, and more."
+    
+    # Rwanda topics
+    if "capital" in user_lower:
+        return "The capital of Rwanda is **Kigali**! 🇷🇼 It's the country's political, economic, and cultural center."
+    
+    if "culture" in user_lower:
+        return "Rwanda has a rich cultural heritage! 🎭 Traditional Intore dance, vibrant arts and crafts, and community values like Umuganda (community work) are central to Rwandan culture."
+    
+    if "paul kagame" in user_lower:
+        return "Paul Kagame is the President of Rwanda. He has been instrumental in Rwanda's remarkable development and transformation since 1994."
+    
+    if "tourism" in user_lower or "tourist" in user_lower:
+        return "Rwanda is famous for its mountain gorillas in Volcanoes National Park, beautiful Lake Kivu, Nyungwe Forest, and Akagera National Park for wildlife safaris! 🦍"
+    
+    if "business" in user_lower:
+        return "Rwanda offers great business opportunities in agriculture, technology, tourism, and services. The government is very supportive of startups and innovation! 💼"
+    
+    if "history" in user_lower:
+        return "Rwanda has a complex and rich history, from the ancient Kingdom of Rwanda to independence in 1962, and its remarkable recovery and development since 1994."
+    
+    if "emmanuel" in user_lower or "creator" in user_lower:
+        return "Emmanuel Mukiza is a Rwandan technology enthusiast and the creator of DeepRWA. He founded The Star🌟 to innovate and contribute to Rwanda's development!"
+    
+    if "star" in user_lower:
+        return "The Star🌟 is Emmanuel Mukiza's innovation and technology company, focused on creating solutions that contribute to Rwanda's development."
+    
+    # Check if question is about Rwanda
+    if "rwanda" in user_lower:
+        return "I'm here to help with anything about Rwanda! 🇷🇼 Feel free to ask me about its culture, history, tourism, famous people, or any specific topic you're curious about."
+    
+    # Default responses
+    return "I'm DeepRWA, specialized in Rwanda 🇷🇼 I can help you with Rwandan culture, history, tourism, famous people, and more. What would you like to know about Rwanda?"
 
-# Fallback response function (works without any API)
-def get_fallback_response(user_input):
-    # Simple keyword-based responses for common questions
-    user_input_lower = user_input.lower()
+# Sidebar
+with st.sidebar:
+    st.image("https://placehold.co/600x200/1E88E5/FFFFFF?text=DeepRWA", use_container_width=True)
     
-    if "capital" in user_input_lower and "rwanda" in user_input_lower:
-        return "The capital of Rwanda is **Kigali**. It is the country's political, economic, and cultural center."
+    st.markdown("### 💬 Chats")
     
-    if "culture" in user_input_lower and "rwanda" in user_input_lower:
-        return "Rwanda has a rich cultural heritage, including the traditional Intore dance, vibrant arts and crafts, and strong community values like Umuganda (community work)."
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        if st.button("📝 New Chat", use_container_width=True):
+            import uuid
+            new_id = str(uuid.uuid4())
+            st.session_state.current_chat_id = new_id
+            st.session_state.chats[new_id] = []
+            st.rerun()
+    with col2:
+        if st.button("🗑️", help="Delete current chat"):
+            if st.session_state.current_chat_id in st.session_state.chats:
+                del st.session_state.chats[st.session_state.current_chat_id]
+                if st.session_state.chats:
+                    st.session_state.current_chat_id = list(st.session_state.chats.keys())[0]
+                else:
+                    import uuid
+                    new_id = str(uuid.uuid4())
+                    st.session_state.current_chat_id = new_id
+                    st.session_state.chats[new_id] = []
+                st.rerun()
     
-    if "paul kagame" in user_input_lower:
-        return "Paul Kagame is the President of Rwanda. He has been a key figure in Rwanda's development and is known for his leadership in transforming the country."
+    st.divider()
     
-    if "tourism" in user_input_lower or "tourist" in user_input_lower:
-        return "Rwanda is famous for its mountain gorillas in Volcanoes National Park, the beautiful Lake Kivu, Nyungwe Forest National Park, and the Akagera National Park for wildlife safaris."
+    # Display chat list
+    for chat_id, messages in st.session_state.chats.items():
+        first_msg = "New Chat"
+        for msg in messages:
+            if msg["role"] == "user":
+                first_msg = msg["content"][:30] + ("..." if len(msg["content"]) > 30 else "")
+                break
+        timestamp = datetime.now().strftime("%H:%M")
+        if st.button(f"💬 {first_msg} ({timestamp})", key=chat_id, use_container_width=True):
+            st.session_state.current_chat_id = chat_id
+            st.rerun()
     
-    if "business" in user_input_lower or "job" in user_input_lower:
-        return "Rwanda offers various business opportunities in agriculture, technology, tourism, and services. The government is supportive of startups and innovation."
+    st.divider()
     
-    if "history" in user_input_lower and "rwanda" in user_input_lower:
-        return "Rwanda has a rich and complex history, from the ancient Kingdom of Rwanda to the colonial period, independence in 1962, the tragic genocide in 1994, and its remarkable recovery and development since then."
-    
-    if "emmanuel" in user_input_lower:
-        return "Emmanuel Mukiza is a Rwandan technology enthusiast and the creator of DeepRWA. He founded The Star🌟, a two-person innovation and technology company, and is passionate about AI and technology."
-    
-    if "star" in user_input_lower:
-        return "The Star🌟 is a Rwandan innovation and technology company founded by Emmanuel Mukiza on August 8, 2023. It is a two-person team dedicated to innovation and technology."
-    
-    # Check if the question is about Rwanda
-    if "rwanda" in user_input_lower:
-        return "I'm DeepRWA, your AI assistant for Rwanda. I can provide information about Rwanda's history, culture, tourism, provinces, famous people, and more. Please ask me a specific question about Rwanda!"
-    
-    # If the question is not about Rwanda
-    return "I am specialized only in topics about Rwanda. I cannot answer questions about other countries or topics. Please ask me something about Rwanda!"
+    st.markdown("---")
+    st.caption("🇷🇼 DeepRWA - Your AI Assistant for Rwanda")
+
+# Main chat area
+st.title("🇷🇼 DeepRWA")
+
+# Get current chat messages
+if st.session_state.current_chat_id not in st.session_state.chats:
+    import uuid
+    st.session_state.current_chat_id = str(uuid.uuid4())
+    st.session_state.chats[st.session_state.current_chat_id] = []
+
+current_messages = st.session_state.chats[st.session_state.current_chat_id]
+
+# Display chat messages
+if current_messages:
+    for message in current_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
+else:
+    # Welcome message
+    with st.chat_message("assistant"):
+        st.markdown("Hello! 😊 I'm **DeepRWA**, your AI assistant for Rwanda. I'm here to help you discover Rwanda's culture, history, tourism, and more. What would you like to know?")
+        st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
 
 # Chat input
 if prompt := st.chat_input("Ask me anything about Rwanda..."):
-    # Add user message to chat
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Add user message
+    user_message = {"role": "user", "content": prompt}
+    current_messages.append(user_message)
     
     # Get AI response
-    with st.spinner("Thinking..."):
-        response = get_ai_response(prompt)
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = get_ai_response(prompt, current_messages)
+            st.markdown(response)
+            st.caption(f"🕐 {datetime.now().strftime('%I:%M %p')}")
     
-    # Add assistant response to chat
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    # Add assistant message
+    assistant_message = {"role": "assistant", "content": response}
+    current_messages.append(assistant_message)
     
-    # Rerun to update the chat display
+    # Save to session
+    st.session_state.chats[st.session_state.current_chat_id] = current_messages
+    
     st.rerun()
