@@ -251,7 +251,8 @@ def get_ai_response(user_input, chat_history):
 
 # Sidebar
 with st.sidebar:
-    st.image("https://placehold.co/600x200/1E88E5/FFFFFF?text=DeepRWA", use_container_width=True)
+    # Use your uploaded image
+    st.image("av.png", use_container_width=True)
     
     st.markdown("### 💬 Chats")
     
