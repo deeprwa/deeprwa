@@ -46,9 +46,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 4px 16px 4px;
+            padding: 8px 4px 14px 4px;
             border-bottom: 1px solid #2d2d30;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         
         .sidebar-logo img {
@@ -66,11 +66,12 @@
         .new-chat-btn {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             padding: 10px 14px;
             background: transparent;
             border: 1px solid #3d3d40;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 400;
             color: #ececf1;
@@ -82,11 +83,13 @@
         
         .new-chat-btn:hover {
             background: #2d2d30;
+            border-color: #5a5a5e;
         }
         
         .new-chat-btn span {
             font-size: 18px;
             font-weight: 300;
+            color: #a0a0a5;
         }
         
         .chat-list {
@@ -128,11 +131,18 @@
             background: #2d2d30;
         }
         
+        .chat-item .chat-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
         .chat-item .time {
             font-size: 11px;
             color: #6e6e72;
-            margin-left: auto;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         
         .chat-item .delete-btn {
@@ -144,6 +154,7 @@
             padding: 0 4px;
             opacity: 0;
             transition: opacity 0.2s;
+            flex-shrink: 0;
         }
         
         .chat-item:hover .delete-btn {
@@ -213,6 +224,39 @@
             background: #343541;
         }
         
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #343541;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2d2d30;
+            border-top-color: #ececf1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* Modal */
         .modal-overlay {
             display: none;
@@ -221,7 +265,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             z-index: 999;
             align-items: center;
             justify-content: center;
@@ -363,6 +407,11 @@
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
@@ -423,32 +472,55 @@
     <script>
         // ============ CONFIGURATION ============
         const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
+        let chatCounter = 0;
+        let isCreatingNewChat = false;
+        let deleteTargetId = null;
         
         // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
-        let deleteTargetId = null;
         
         function saveChats() {
             localStorage.setItem('deeprwa_chats', JSON.stringify(chats));
         }
         
         function createNewChat() {
+            // Prevent multiple empty chats
+            if (isCreatingNewChat) return;
+            isCreatingNewChat = true;
+            
+            // Check if there's already an empty chat
+            for (const key in chats) {
+                if (chats[key].name === 'New Chat' && chats[key].messages === undefined) {
+                    switchChat(key);
+                    isCreatingNewChat = false;
+                    return;
+                }
+            }
+            
             const id = 'chat_' + Date.now();
             const now = new Date();
             const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            chatCounter++;
+            
             chats[id] = {
                 id: id,
                 name: 'New Chat',
                 created: now.toISOString(),
-                time: timeStr
+                time: timeStr,
+                messages: []
             };
+            
             currentChatId = id;
             localStorage.setItem('deeprwa_current_chat', id);
             saveChats();
             renderChatList();
             updateAgent();
             closeMobileSidebar();
+            
+            setTimeout(() => {
+                isCreatingNewChat = false;
+            }, 500);
         }
         
         function openDeleteModal(id) {
@@ -479,6 +551,7 @@
         }
         
         function switchChat(id) {
+            if (id === currentChatId) return;
             currentChatId = id;
             localStorage.setItem('deeprwa_current_chat', id);
             renderChatList();
@@ -486,10 +559,24 @@
             closeMobileSidebar();
         }
         
+        function updateChatName(id, firstMessage) {
+            if (chats[id] && chats[id].name === 'New Chat') {
+                const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
+                chats[id].name = name;
+                saveChats();
+                renderChatList();
+            }
+        }
+        
         function renderChatList() {
             const list = document.getElementById('chatList');
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
+            
+            // Sort by creation time (newest first)
+            keys.sort((a, b) => {
+                return new Date(chats[b].created) - new Date(chats[a].created);
+            });
             
             let html = '';
             if (keys.length === 0) {
@@ -498,10 +585,12 @@
                 for (const key of keys) {
                     const chat = chats[key];
                     const isActive = key === currentChatId;
+                    const timeStr = chat.time || '--:--';
+                    const name = chat.name || 'New Chat';
                     html += `
                         <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
-                            💬 ${chat.name}
-                            <span class="time">${chat.time || '--:--'}</span>
+                            <span class="chat-name">💬 ${name}</span>
+                            <span class="time">${timeStr}</span>
                             <button class="delete-btn" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>
                         </div>
                     `;
@@ -514,7 +603,24 @@
         
         function updateAgent() {
             const frame = document.getElementById('agentFrame');
+            // Reload with timestamp to avoid cache
             frame.src = TASKADE_LINK + '?t=' + Date.now();
+            
+            // Show loading overlay
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('hidden');
+            
+            // Hide loading after iframe loads
+            frame.onload = function() {
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            };
+            
+            // Fallback: hide after 3 seconds even if iframe doesn't load
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 3000);
         }
         
         function openMobileSidebar() {
@@ -526,6 +632,20 @@
             document.getElementById('mobileSidebar').classList.remove('active');
             document.getElementById('mobileOverlay').classList.remove('active');
         }
+        
+        // Listen for messages from the iframe to detect user input
+        window.addEventListener('message', function(event) {
+            // This will capture when a user sends a message in the Taskade agent
+            // The iframe sends messages that we can intercept
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'user_message' && data.message) {
+                    updateChatName(currentChatId, data.message);
+                }
+            } catch (e) {
+                // Not a JSON message, ignore
+            }
+        });
         
         // ============ INITIALIZE ============
         if (!currentChatId || !chats[currentChatId]) {
@@ -539,6 +659,11 @@
         }
         
         renderChatList();
+        
+        // Hide loading overlay after initial load
+        setTimeout(() => {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }, 1500);
     </script>
 </body>
 </html>
