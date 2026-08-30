@@ -297,6 +297,11 @@
             background: #343541;
         }
 
+        /* Hide Taskade's default input */
+        .agent-container iframe {
+            pointer-events: none;
+        }
+
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -743,7 +748,6 @@
         }
 
         // ----- CHAT NAME UPDATE -----
-        // This function is called when user sends a message via our custom input
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
@@ -767,39 +771,7 @@
                         message: message
                     }, '*');
                 }
-            } catch (e) {
-                // Ignore
-            }
-        }
-
-        // ----- CREATE CHAT FROM USER INPUT -----
-        function createChatFromMessage(message) {
-            if (!message || !message.trim()) return;
-
-            // If no chat exists, create one
-            if (!currentChatId || !chats[currentChatId]) {
-                const id = 'chat_' + Date.now();
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                chats[id] = {
-                    id: id,
-                    name: 'New Chat',
-                    created: now.toISOString(),
-                    time: timeStr,
-                    messages: [],
-                    pinned: false
-                };
-                currentChatId = id;
-                localStorage.setItem('deeprwa_current_chat', id);
-                saveChats();
-                renderChatList();
-            }
-
-            // Update chat name
-            updateChatName(currentChatId, message.trim());
-
-            // Send message to agent
-            sendMessageToAgent(message);
+            } catch (e) {}
         }
 
         // ----- DROPDOWN MENU -----
@@ -922,7 +894,7 @@
             }
         });
 
-        // ----- LISTEN FOR MESSAGES FROM IFRAME -----
+        // ===== LISTEN FOR IFRAME MESSAGES =====
         window.addEventListener('message', function(event) {
             try {
                 let data;
@@ -964,16 +936,16 @@
         });
 
         // =============================================
-        // ===== CUSTOM CHAT INPUT =====
+        // ===== CUSTOM CHAT INPUT (ONLY ONE) =====
         // =============================================
-        // We'll create a custom chat input that sends messages to the iframe
-        // This bypasses the iframe's own input and gives us full control
-
-        // Create a floating input box at the bottom
         const chatContainer = document.querySelector('.agent-container');
         if (chatContainer) {
-            // Create input wrapper
+            // Remove any existing input wrappers
+            const existingWrappers = chatContainer.querySelectorAll('.custom-input-wrapper');
+            existingWrappers.forEach(w => w.remove());
+
             const inputWrapper = document.createElement('div');
+            inputWrapper.className = 'custom-input-wrapper';
             inputWrapper.style.cssText = `
                         position: absolute;
                         bottom: 20px;
@@ -1026,12 +998,31 @@
             inputWrapper.appendChild(sendButton);
             chatContainer.appendChild(inputWrapper);
 
-            // Send message function
+            // Also add a style to hide Taskade's input
+            const style = document.createElement('style');
+            style.textContent = `
+                        .agent-container iframe {
+                            pointer-events: none;
+                        }
+                        .agent-container iframe body {
+                            pointer-events: none;
+                        }
+                        /* Hide Taskade's input area */
+                        .agent-container iframe .chat-input-area,
+                        .agent-container iframe [class*="input"],
+                        .agent-container iframe [class*="Input"] {
+                            display: none !important;
+                            opacity: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                        }
+                    `;
+            document.head.appendChild(style);
+
             function sendMessage() {
                 const message = inputField.value.trim();
                 if (!message) return;
 
-                // Create chat and update name
                 if (!currentChatId || !chats[currentChatId]) {
                     const id = 'chat_' + Date.now();
                     const now = new Date();
@@ -1051,35 +1042,22 @@
                 }
 
                 updateChatName(currentChatId, message);
+                sendMessageToAgent(message);
 
-                // Send to iframe
-                try {
-                    const iframe = document.getElementById('agentFrame');
-                    if (iframe && iframe.contentWindow) {
-                        iframe.contentWindow.postMessage({
-                            type: 'user_message',
-                            message: message
-                        }, '*');
-                    }
-                } catch (e) {}
-
-                // Also try to find the iframe's input and fill it
+                // Try to fill and submit the iframe's input
                 try {
                     const iframe = document.getElementById('agentFrame');
                     if (iframe && iframe.contentDocument) {
-                        const iframeInputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
-                        for (const inp of iframeInputs) {
-                            if (inp.placeholder && inp.placeholder.toLowerCase().includes('ask')) {
+                        const inputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
+                        for (const inp of inputs) {
+                            if (inp.placeholder && (inp.placeholder.toLowerCase().includes('ask') || inp.placeholder.toLowerCase().includes('message'))) {
                                 inp.value = message;
-                                // Trigger input event
                                 const event = new Event('input', { bubbles: true });
                                 inp.dispatchEvent(event);
-                                // Find and click send button
                                 const btns = iframe.contentDocument.querySelectorAll('button');
                                 for (const btn of btns) {
-                                    if (btn.textContent.toLowerCase().includes('send') ||
-                                        btn.textContent.toLowerCase().includes('submit') ||
-                                        btn.textContent.toLowerCase().includes('ask')) {
+                                    const txt = btn.textContent.toLowerCase();
+                                    if (txt.includes('send') || txt.includes('submit') || txt.includes('ask')) {
                                         btn.click();
                                         break;
                                     }
@@ -1091,9 +1069,9 @@
                 } catch (e) {}
 
                 inputField.value = '';
+                inputField.focus();
             }
 
-            // Events
             sendButton.addEventListener('click', sendMessage);
             inputField.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
@@ -1102,7 +1080,6 @@
                 }
             });
 
-            // Focus the input on load
             setTimeout(() => { inputField.focus(); }, 1000);
         }
 
