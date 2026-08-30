@@ -622,16 +622,20 @@
             closeMobileSidebar();
         }
 
-        // ===== FIX 2: CHAT NAME UPDATES TO USER'S FIRST MESSAGE =====
-        function updateChatName(id, firstMessage) {
-            if (chats[id] && chats[id].name === 'New Chat') {
-                const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
-                chats[id].name = name;
-                if (!chats[id].messages) chats[id].messages = [];
-                chats[id].messages.push({ role: 'user', content: firstMessage });
-                saveChats();
-                renderChatList();
+        // ===== FIX 2 & 5: STORE ALL MESSAGES AND UPDATE CHAT NAME =====
+        function addMessageToChat(chatId, role, content) {
+            if (!chats[chatId]) return;
+            if (!chats[chatId].messages) chats[chatId].messages = [];
+            chats[chatId].messages.push({ role: role, content: content });
+            
+            // If this is the first user message, update the chat name
+            if (role === 'user' && chats[chatId].name === 'New Chat') {
+                const name = content.length > 25 ? content.substring(0, 25) + '...' : content;
+                chats[chatId].name = name;
             }
+            
+            saveChats();
+            renderChatList();
         }
 
         // ===== FIX 3: DROPDOWN MENU =====
@@ -751,15 +755,17 @@
         });
 
         // ===== MESSAGE LISTENER =====
-        // This listens for messages from the iframe
+        // This listens for messages from the iframe and stores them
         window.addEventListener('message', function(event) {
             try {
                 let data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                
+                // Handle user messages
                 if (data && data.type === 'user_message' && data.message) {
                     const msg = data.message.trim();
                     if (!msg) return;
 
-                    // If no chat exists, create one from the message
+                    // If no chat exists, create one
                     if (!currentChatId || !chats[currentChatId]) {
                         const id = 'chat_' + Date.now();
                         const now = new Date();
@@ -778,10 +784,21 @@
                         renderChatList();
                     }
 
-                    // Update chat name with the first message
-                    updateChatName(currentChatId, msg);
+                    // Store the user message
+                    addMessageToChat(currentChatId, 'user', msg);
                 }
-            } catch (e) {}
+                
+                // Handle assistant responses (if the iframe sends them)
+                if (data && data.type === 'assistant_message' && data.message) {
+                    const msg = data.message.trim();
+                    if (!msg || !currentChatId || !chats[currentChatId]) return;
+                    
+                    // Store the assistant message
+                    addMessageToChat(currentChatId, 'assistant', msg);
+                }
+            } catch (e) {
+                // Ignore parsing errors
+            }
         });
 
         // ============ INITIALIZE ============
