@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeepRWA</title>
+    <link rel="icon" href="av.png" type="image/png">
     <style>
         * {
             margin: 0;
@@ -13,65 +14,79 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f7f7f8;
+            background: #343541;
             height: 100vh;
             overflow: hidden;
             display: flex;
+            color: #ececf1;
         }
         
         /* Sidebar */
         .sidebar {
-            width: 280px;
-            background: #f7f7f8;
-            border-right: 1px solid #e5e5e5;
+            width: 260px;
+            background: #202123;
             display: flex;
             flex-direction: column;
-            padding: 16px;
+            padding: 12px;
             flex-shrink: 0;
             height: 100vh;
             overflow-y: auto;
+            border-right: 1px solid #2d2d30;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #4a4a4d;
+            border-radius: 4px;
         }
         
         .sidebar-logo {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e5e5e5;
-            margin-bottom: 16px;
+            padding: 8px 4px 16px 4px;
+            border-bottom: 1px solid #2d2d30;
+            margin-bottom: 12px;
         }
         
         .sidebar-logo img {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
         }
         
         .sidebar-logo span {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1a1a;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ececf1;
         }
         
         .new-chat-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: #e5e5e5;
-            border: none;
-            border-radius: 8px;
+            gap: 10px;
+            padding: 10px 14px;
+            background: transparent;
+            border: 1px solid #3d3d40;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 500;
-            color: #1a1a1a;
+            font-weight: 400;
+            color: #ececf1;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             width: 100%;
             margin-bottom: 12px;
         }
         
         .new-chat-btn:hover {
-            background: #d1d1d1;
+            background: #2d2d30;
+        }
+        
+        .new-chat-btn span {
+            font-size: 18px;
+            font-weight: 300;
         }
         
         .chat-list {
@@ -79,12 +94,20 @@
             overflow-y: auto;
         }
         
+        .chat-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-list::-webkit-scrollbar-thumb {
+            background: #4a4a4d;
+            border-radius: 4px;
+        }
+        
         .chat-item {
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            color: #1a1a1a;
+            color: #ececf1;
             border: none;
             background: transparent;
             width: 100%;
@@ -94,20 +117,20 @@
             gap: 8px;
             transition: background 0.2s;
             margin-bottom: 2px;
+            position: relative;
         }
         
         .chat-item:hover {
-            background: #e5e5e5;
+            background: #2d2d30;
         }
         
         .chat-item.active {
-            background: #e5e5e5;
-            font-weight: 500;
+            background: #2d2d30;
         }
         
         .chat-item .time {
             font-size: 11px;
-            color: #999;
+            color: #6e6e72;
             margin-left: auto;
             white-space: nowrap;
         }
@@ -115,9 +138,9 @@
         .chat-item .delete-btn {
             background: none;
             border: none;
-            color: #999;
+            color: #6e6e72;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             padding: 0 4px;
             opacity: 0;
             transition: opacity 0.2s;
@@ -133,9 +156,9 @@
         
         .sidebar-footer {
             padding-top: 12px;
-            border-top: 1px solid #e5e5e5;
+            border-top: 1px solid #2d2d30;
             font-size: 12px;
-            color: #999;
+            color: #6e6e72;
             text-align: center;
         }
         
@@ -145,17 +168,17 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background: white;
+            background: #343541;
         }
         
         .main-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 16px 24px;
-            border-bottom: 1px solid #e5e5e5;
+            padding: 12px 24px;
+            border-bottom: 1px solid #2d2d30;
             flex-shrink: 0;
-            background: white;
+            background: #343541;
         }
         
         .main-header img {
@@ -165,14 +188,14 @@
         }
         
         .main-header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a1a1a;
+            font-size: 18px;
+            font-weight: 600;
+            color: #ececf1;
         }
         
         .main-header p {
-            font-size: 14px;
-            color: #666;
+            font-size: 13px;
+            color: #6e6e72;
             margin-left: auto;
         }
         
@@ -180,48 +203,97 @@
             flex: 1;
             position: relative;
             overflow: hidden;
+            background: #343541;
         }
         
         .agent-container iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background: white;
+            background: #343541;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: #2d2d30;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        
+        .modal h3 {
+            color: #ececf1;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .modal p {
+            color: #a0a0a5;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .modal-buttons button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .modal-buttons .cancel-btn {
+            background: #3d3d40;
+            color: #ececf1;
+        }
+        
+        .modal-buttons .cancel-btn:hover {
+            background: #4a4a4d;
+        }
+        
+        .modal-buttons .confirm-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .modal-buttons .confirm-btn:hover {
+            background: #c0392b;
         }
         
         /* Mobile */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 220px;
-                padding: 12px;
-            }
-            .main-header {
-                padding: 12px 16px;
-            }
-            .main-header h1 {
-                font-size: 16px;
-            }
-        }
-        
-        @media (max-width: 500px) {
-            .sidebar {
-                display: none;
-            }
-            .mobile-toggle {
-                display: flex !important;
-            }
-        }
-        
         .mobile-toggle {
             display: none;
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            color: #1a1a1a;
+            color: #ececf1;
             padding: 4px 8px;
-            align-items: center;
-            justify-content: center;
         }
         
         .mobile-overlay {
@@ -245,10 +317,10 @@
             top: 0;
             left: 0;
             bottom: 0;
-            width: 280px;
-            background: #f7f7f8;
+            width: 260px;
+            background: #202123;
             z-index: 1000;
-            padding: 16px;
+            padding: 12px;
             overflow-y: auto;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
@@ -263,19 +335,46 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         
         .mobile-sidebar-header .close-btn {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            color: #1a1a1a;
+            color: #ececf1;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .mobile-toggle {
+                display: flex;
+            }
+            .main-header {
+                padding: 10px 16px;
+            }
+            .main-header h1 {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3>Delete this chat?</h3>
+            <p>This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
     
@@ -288,9 +387,11 @@
             </div>
             <button class="close-btn" onclick="closeMobileSidebar()">✕</button>
         </div>
-        <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
+        <button class="new-chat-btn" onclick="createNewChat()">
+            <span>+</span> New Chat
+        </button>
         <div class="chat-list" id="mobileChatList"></div>
-        <div class="sidebar-footer">🇷🇼 DeepRWA</div>
+        <div class="sidebar-footer">DeepRWA · Your AI Assistant</div>
     </div>
     
     <!-- Desktop Sidebar -->
@@ -299,9 +400,11 @@
             <img src="av.png" alt="DeepRWA">
             <span>DeepRWA</span>
         </div>
-        <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
+        <button class="new-chat-btn" onclick="createNewChat()">
+            <span>+</span> New Chat
+        </button>
         <div class="chat-list" id="chatList"></div>
-        <div class="sidebar-footer">🇷🇼 DeepRWA · Your AI Assistant for Rwanda</div>
+        <div class="sidebar-footer">DeepRWA · Your AI Assistant</div>
     </div>
     
     <!-- Main Chat Area -->
@@ -312,19 +415,19 @@
             <h1>DeepRWA</h1>
             <p>Your AI assistant for Rwanda</p>
         </div>
-        <div class="agent-container">
-            <iframe id="agentFrame" src="YOUR_TASKADE_LINK_HERE" allow="clipboard-read; clipboard-write"></iframe>
+        <div class="agent-container" id="agentContainer">
+            <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
         </div>
     </div>
 
     <script>
         // ============ CONFIGURATION ============
-        // Replace with your actual Taskade public link
         const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
         
         // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
+        let deleteTargetId = null;
         
         function saveChats() {
             localStorage.setItem('deeprwa_chats', JSON.stringify(chats));
@@ -348,9 +451,19 @@
             closeMobileSidebar();
         }
         
-        function deleteChat(id) {
-            if (confirm('Delete this chat?')) {
-                delete chats[id];
+        function openDeleteModal(id) {
+            deleteTargetId = id;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            deleteTargetId = null;
+        }
+        
+        function confirmDelete() {
+            if (deleteTargetId) {
+                delete chats[deleteTargetId];
                 const keys = Object.keys(chats);
                 if (keys.length > 0) {
                     currentChatId = keys[0];
@@ -362,6 +475,7 @@
                 renderChatList();
                 updateAgent();
             }
+            closeModal();
         }
         
         function switchChat(id) {
@@ -379,7 +493,7 @@
             
             let html = '';
             if (keys.length === 0) {
-                html = '<div style="color:#999;padding:12px;text-align:center;font-size:13px;">No chats yet</div>';
+                html = '<div style="color:#6e6e72;padding:12px;text-align:center;font-size:13px;">No chats yet</div>';
             } else {
                 for (const key of keys) {
                     const chat = chats[key];
@@ -388,7 +502,7 @@
                         <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
                             💬 ${chat.name}
                             <span class="time">${chat.time || '--:--'}</span>
-                            <button class="delete-btn" onclick="event.stopPropagation();deleteChat('${key}')">✕</button>
+                            <button class="delete-btn" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>
                         </div>
                     `;
                 }
@@ -400,7 +514,6 @@
         
         function updateAgent() {
             const frame = document.getElementById('agentFrame');
-            // Add a timestamp to force reload
             frame.src = TASKADE_LINK + '?t=' + Date.now();
         }
         
