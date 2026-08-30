@@ -32,7 +32,6 @@
             height: 100vh;
             overflow-y: auto;
             border-right: 1px solid #2d2d30;
-            position: relative;
             transition: transform 0.3s ease;
         }
         
@@ -79,18 +78,26 @@
             color: #ececf1;
         }
         
-        .sidebar-close-btn {
+        .sidebar-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sidebar-icon {
             background: none;
             border: none;
             color: #6e6e72;
             cursor: pointer;
             font-size: 18px;
-            padding: 4px 8px;
+            padding: 4px 6px;
             transition: color 0.2s;
+            border-radius: 4px;
         }
         
-        .sidebar-close-btn:hover {
+        .sidebar-icon:hover {
             color: #ececf1;
+            background: #2d2d30;
         }
         
         .new-chat-btn {
@@ -175,23 +182,33 @@
             flex-shrink: 0;
         }
         
-        .chat-item .delete-btn {
+        .chat-item .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .chat-item:hover .item-actions {
+            opacity: 1;
+        }
+        
+        .chat-item .item-btn {
             background: none;
             border: none;
             color: #6e6e72;
             cursor: pointer;
             font-size: 13px;
             padding: 0 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            flex-shrink: 0;
+            transition: color 0.2s;
         }
         
-        .chat-item:hover .delete-btn {
-            opacity: 1;
+        .chat-item .item-btn:hover {
+            color: #ececf1;
         }
         
-        .chat-item .delete-btn:hover {
+        .chat-item .item-btn.delete:hover {
             color: #e74c3c;
         }
         
@@ -215,50 +232,16 @@
         .main-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: flex-end;
             padding: 12px 24px;
             border-bottom: 1px solid #2d2d30;
             flex-shrink: 0;
             background: #343541;
+            height: 60px;
         }
         
-        .main-header .menu-btn {
-            background: none;
-            border: none;
-            color: #ececf1;
-            cursor: pointer;
-            font-size: 20px;
-            padding: 4px 8px;
-        }
-        
-        .main-header .menu-btn:hover {
-            color: #a0a0a5;
-        }
-        
-        .main-header .search-btn {
-            background: none;
-            border: none;
-            color: #ececf1;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 4px 8px;
-            margin-left: auto;
-        }
-        
-        .main-header .search-btn:hover {
-            color: #a0a0a5;
-        }
-        
-        .main-header h1 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #ececf1;
-        }
-        
-        .main-header p {
-            font-size: 13px;
-            color: #6e6e72;
-            margin-left: auto;
+        .main-header .header-title {
+            display: none;
         }
         
         .agent-container {
@@ -328,7 +311,7 @@
         
         .modal {
             background: #2d2d30;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 24px;
             max-width: 400px;
             width: 90%;
@@ -356,7 +339,7 @@
         .modal-buttons button {
             padding: 8px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             transition: background 0.2s;
@@ -380,63 +363,60 @@
             background: #c0392b;
         }
         
-        /* Search Popup */
-        .search-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #2d2d30;
-            border-radius: 8px;
-            padding: 24px;
-            width: 400px;
-            max-width: 90%;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        .modal-buttons .share-btn {
+            background: #1E88E5;
+            color: white;
         }
         
-        .search-popup.active {
-            display: block;
+        .modal-buttons .share-btn:hover {
+            background: #1565C0;
         }
         
-        .search-popup input {
-            width: 100%;
-            padding: 12px 16px;
+        /* Share modal */
+        .share-link-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
             background: #3d3d40;
-            border: 1px solid #4a4a4d;
             border-radius: 6px;
+            padding: 4px;
+        }
+        
+        .share-link-container input {
+            flex: 1;
+            background: transparent;
+            border: none;
             color: #ececf1;
-            font-size: 14px;
+            padding: 8px 12px;
+            font-size: 13px;
             outline: none;
         }
         
-        .search-popup input:focus {
-            border-color: #5a5a5e;
-        }
-        
-        .search-popup .close-search {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            background: none;
+        .share-link-container button {
+            background: #1E88E5;
             border: none;
-            color: #6e6e72;
-            font-size: 20px;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 13px;
         }
         
-        .search-popup .close-search:hover {
-            color: #ececf1;
-        }
-        
-        .search-popup p {
-            color: #6e6e72;
-            font-size: 12px;
-            margin-top: 8px;
+        .share-link-container button:hover {
+            background: #1565C0;
         }
         
         /* Mobile */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #ececf1;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
         .mobile-overlay {
             display: none;
             position: fixed;
@@ -458,7 +438,7 @@
             top: 0;
             left: 0;
             bottom: 0;
-            width: 260px;
+            width: 280px;
             background: #202123;
             z-index: 1000;
             padding: 12px;
@@ -491,11 +471,18 @@
             .sidebar {
                 display: none;
             }
+            .mobile-toggle {
+                display: flex;
+            }
             .main-header {
                 padding: 10px 16px;
+                justify-content: space-between;
             }
-            .main-header h1 {
+            .main-header .header-title {
+                display: block;
                 font-size: 16px;
+                font-weight: 600;
+                color: #ececf1;
             }
         }
     </style>
@@ -506,23 +493,31 @@
         <div class="loading-spinner"></div>
     </div>
     
-    <!-- Modal -->
-    <div class="modal-overlay" id="modalOverlay">
+    <!-- Delete Modal -->
+    <div class="modal-overlay" id="deleteModal">
         <div class="modal">
             <h3>Delete this chat?</h3>
             <p>This action cannot be undone.</p>
             <div class="modal-buttons">
-                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="cancel-btn" onclick="closeDeleteModal()">Cancel</button>
                 <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
             </div>
         </div>
     </div>
     
-    <!-- Search Popup -->
-    <div class="search-popup" id="searchPopup">
-        <button class="close-search" onclick="closeSearch()">✕</button>
-        <input type="text" id="searchInput" placeholder="Search Rwanda information...">
-        <p>Press Enter to search</p>
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal">
+            <h3>Share this chat</h3>
+            <p>Copy the link below to share this conversation.</p>
+            <div class="share-link-container">
+                <input type="text" id="shareLinkInput" value="" readonly>
+                <button onclick="copyShareLink()">Copy</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeShareModal()">Close</button>
+            </div>
+        </div>
     </div>
     
     <!-- Mobile Overlay -->
@@ -551,7 +546,10 @@
                 <img src="av.png" alt="DeepRWA">
                 <span>DeepRWA</span>
             </div>
-            <button class="sidebar-close-btn" onclick="toggleSidebar()" title="Close sidebar">✕</button>
+            <div class="sidebar-icons">
+                <button class="sidebar-icon" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+                <button class="sidebar-icon" onclick="openSearch()" title="Search chats">🔍</button>
+            </div>
         </div>
         <button class="new-chat-btn" onclick="createNewChat()">
             <span>+</span> New Chat
@@ -563,10 +561,8 @@
     <!-- Main Chat Area -->
     <div class="main-chat">
         <div class="main-header">
-            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <h1>DeepRWA</h1>
-            <p>Your AI assistant for Rwanda</p>
-            <button class="search-btn" onclick="openSearch()">🔍</button>
+            <button class="mobile-toggle" onclick="openMobileSidebar()">☰</button>
+            <span class="header-title">DeepRWA</span>
         </div>
         <div class="agent-container" id="agentContainer">
             <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
@@ -579,26 +575,16 @@
         let isCreatingNewChat = false;
         let deleteTargetId = null;
         let isSidebarOpen = true;
+        let shareChatId = null;
         
         // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
         
-        // If no chats exist, create a default one
+        // If no chats exist, start with empty state
         if (Object.keys(chats).length === 0) {
-            const id = 'chat_' + Date.now();
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-            chats[id] = {
-                id: id,
-                name: 'New Chat',
-                created: now.toISOString(),
-                time: timeStr,
-                messages: []
-            };
-            currentChatId = id;
-            localStorage.setItem('deeprwa_current_chat', id);
-            saveChats();
+            currentChatId = null;
+            localStorage.removeItem('deeprwa_current_chat');
         }
         
         function saveChats() {
@@ -611,15 +597,14 @@
         }
         
         function createNewChat() {
-            // Prevent multiple empty chats
             if (isCreatingNewChat) return;
             
-            // Check if current chat is empty - if so, don't create a new one
+            // If current chat is empty, just switch to it
             if (currentChatId && isChatEmpty(currentChatId)) {
                 return;
             }
             
-            // Check if there's already an empty chat
+            // Check for existing empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -654,16 +639,13 @@
         }
         
         function openDeleteModal(id) {
-            // Prevent deleting if there's only one chat
-            if (Object.keys(chats).length <= 1) {
-                return;
-            }
+            if (Object.keys(chats).length <= 1) return;
             deleteTargetId = id;
-            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('deleteModal').classList.add('active');
         }
         
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
             deleteTargetId = null;
         }
         
@@ -674,14 +656,38 @@
                 if (keys.length > 0) {
                     currentChatId = keys[0];
                 } else {
-                    createNewChat();
+                    currentChatId = null;
+                    localStorage.removeItem('deeprwa_current_chat');
                 }
                 localStorage.setItem('deeprwa_current_chat', currentChatId);
                 saveChats();
                 renderChatList();
                 updateAgent();
             }
-            closeModal();
+            closeDeleteModal();
+        }
+        
+        function openShareModal(id) {
+            shareChatId = id;
+            const chat = chats[id];
+            const url = window.location.href + '?chat=' + id;
+            document.getElementById('shareLinkInput').value = url;
+            document.getElementById('shareModal').classList.add('active');
+        }
+        
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+            shareChatId = null;
+        }
+        
+        function copyShareLink() {
+            const input = document.getElementById('shareLinkInput');
+            input.select();
+            document.execCommand('copy');
+            const btn = input.nextElementSibling;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = originalText; }, 2000);
         }
         
         function switchChat(id) {
@@ -709,25 +715,30 @@
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
             
-            // Sort by creation time (newest first)
             keys.sort((a, b) => {
                 return new Date(chats[b].created) - new Date(chats[a].created);
             });
             
             let html = '';
-            for (const key of keys) {
-                const chat = chats[key];
-                const isActive = key === currentChatId;
-                const timeStr = chat.time || '--:--';
-                const name = chat.name || 'New Chat';
-                const isDeletable = keys.length > 1;
-                html += `
-                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
-                        <span class="chat-name">💬 ${name}</span>
-                        <span class="time">${timeStr}</span>
-                        ${isDeletable ? `<button class="delete-btn" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>` : ''}
-                    </div>
-                `;
+            if (keys.length === 0) {
+                html = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.<br>Click "New Chat" to start.</div>';
+            } else {
+                for (const key of keys) {
+                    const chat = chats[key];
+                    const isActive = key === currentChatId;
+                    const timeStr = chat.time || '--:--';
+                    const name = chat.name || 'New Chat';
+                    const isDeletable = keys.length > 1;
+                    html += `
+                        <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
+                            <span class="chat-name">💬 ${name}</span>
+                            <span class="time">${timeStr}</span>
+                            <div class="item-actions">
+                                ${isDeletable ? `<button class="item-btn delete" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
             }
             
             list.innerHTML = html;
@@ -755,21 +766,28 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('desktopSidebar');
             isSidebarOpen = !isSidebarOpen;
-            if (isSidebarOpen) {
-                sidebar.classList.remove('closed');
-            } else {
-                sidebar.classList.add('closed');
-            }
+            sidebar.classList.toggle('closed', !isSidebarOpen);
         }
         
         function openSearch() {
-            document.getElementById('searchPopup').classList.add('active');
-            document.getElementById('searchInput').focus();
-        }
-        
-        function closeSearch() {
-            document.getElementById('searchPopup').classList.remove('active');
-            document.getElementById('searchInput').value = '';
+            // Search functionality: filter chat list
+            const query = prompt('Search chats:');
+            if (query && query.trim()) {
+                const searchTerm = query.trim().toLowerCase();
+                const list = document.getElementById('chatList');
+                const items = list.querySelectorAll('.chat-item');
+                items.forEach(item => {
+                    const name = item.querySelector('.chat-name')?.textContent || '';
+                    if (name.toLowerCase().includes(searchTerm)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                setTimeout(() => {
+                    items.forEach(item => { item.style.display = 'flex'; });
+                }, 5000);
+            }
         }
         
         function openMobileSidebar() {
@@ -781,22 +799,6 @@
             document.getElementById('mobileSidebar').classList.remove('active');
             document.getElementById('mobileOverlay').classList.remove('active');
         }
-        
-        // Handle search input
-        document.getElementById('searchInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const query = this.value.trim();
-                if (query) {
-                    // Send the search query to the iframe
-                    const frame = document.getElementById('agentFrame');
-                    frame.contentWindow.postMessage({
-                        type: 'search',
-                        query: query
-                    }, '*');
-                    closeSearch();
-                }
-            }
-        });
         
         // Listen for messages from the iframe
         window.addEventListener('message', function(event) {
@@ -810,6 +812,11 @@
         
         // ============ INITIALIZE ============
         renderChatList();
+        
+        // If there's no current chat, show the agent without any chat selected
+        if (!currentChatId) {
+            // Still load the agent but with no chat context
+        }
         
         setTimeout(() => {
             document.getElementById('loadingOverlay').classList.add('hidden');
