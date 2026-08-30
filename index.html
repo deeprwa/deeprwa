@@ -32,8 +32,8 @@
             height: 100vh;
             overflow-y: auto;
             border-right: 1px solid #2d2d30;
-            transition: transform 0.3s ease, width 0.3s ease, padding 0.3s ease;
-            position: relative;
+            transition: transform 0.3s ease;
+            z-index: 5;
         }
         
         .sidebar.closed {
@@ -139,7 +139,7 @@
             text-align: left;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
             transition: background 0.2s;
             margin-bottom: 2px;
             position: relative;
@@ -162,28 +162,53 @@
             flex-shrink: 0;
         }
         
-        .chat-item .item-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .chat-item:hover .item-actions { opacity: 1; }
-        
-        .chat-item .item-btn {
+        .chat-item .more-btn {
             background: none;
             border: none;
             color: #6e6e72;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 16px;
             padding: 0 4px;
-            transition: color 0.2s;
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
         }
         
-        .chat-item .item-btn:hover { color: #ececf1; }
-        .chat-item .item-btn.delete:hover { color: #e74c3c; }
+        .chat-item:hover .more-btn { opacity: 1; }
+        .chat-item .more-btn:hover { color: #ececf1; }
+        
+        /* Dropdown menu */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: #2d2d30;
+            border-radius: 8px;
+            padding: 4px 0;
+            min-width: 120px;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            margin-top: 4px;
+        }
+        
+        .dropdown-menu.active { display: block; }
+        
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            color: #ececf1;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .dropdown-menu button:hover { background: #3d3d40; }
+        .dropdown-menu button.delete:hover { color: #e74c3c; }
         
         .sidebar-footer {
             padding-top: 12px;
@@ -200,45 +225,49 @@
             flex-direction: column;
             height: 100vh;
             background: #343541;
+            position: relative;
         }
         
         .main-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 24px;
+            gap: 12px;
+            padding: 12px 20px;
             border-bottom: 1px solid #2d2d30;
             flex-shrink: 0;
             background: #343541;
             height: 60px;
         }
         
-        .main-header-left {
+        .main-header .menu-btn {
+            background: none;
+            border: none;
+            color: #ececf1;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px 8px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+        
+        .main-header .menu-btn:hover { color: #a0a0a5; }
+        
+        .main-header .header-logo {
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .main-header-left img {
+        .main-header .header-logo img {
             width: 28px;
             height: 28px;
             border-radius: 50%;
         }
         
-        .main-header-left span {
+        .main-header .header-logo span {
             font-size: 18px;
             font-weight: 600;
             color: #ececf1;
-        }
-        
-        .mobile-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: #ececf1;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px 8px;
         }
         
         .agent-container {
@@ -255,6 +284,7 @@
             background: #343541;
         }
         
+        /* Loading overlay */
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -294,6 +324,7 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -357,6 +388,42 @@
         }
         .modal-buttons .confirm-btn:hover { background: #c0392b; }
         
+        .modal-buttons .share-copy-btn {
+            background: #1E88E5;
+            color: white;
+        }
+        .modal-buttons .share-copy-btn:hover { background: #1565C0; }
+        
+        .share-link-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: #3d3d40;
+            border-radius: 6px;
+            padding: 4px;
+        }
+        
+        .share-link-container input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ececf1;
+            padding: 8px 12px;
+            font-size: 13px;
+            outline: none;
+        }
+        
+        .share-link-container button {
+            background: #1E88E5;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .share-link-container button:hover { background: #1565C0; }
+        
         /* Mobile */
         .mobile-overlay {
             display: none;
@@ -408,9 +475,8 @@
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .main-header { padding: 10px 16px; }
-            .main-header-left span { font-size: 16px; }
-            .main-header-left img { width: 24px; height: 24px; }
-            .mobile-toggle { display: flex; }
+            .main-header .header-logo span { font-size: 16px; }
+            .main-header .header-logo img { width: 24px; height: 24px; }
         }
     </style>
 </head>
@@ -429,6 +495,33 @@
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeDeleteModal()">Cancel</button>
                 <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal">
+            <h3>Share this chat</h3>
+            <p>Copy the link below to share this conversation.</p>
+            <div class="share-link-container">
+                <input type="text" id="shareLinkInput" value="" readonly>
+                <button onclick="copyShareLink()">Copy</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeShareModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pin Modal -->
+    <div class="modal-overlay" id="pinModal">
+        <div class="modal">
+            <h3>Pin this chat</h3>
+            <p>This chat will be pinned to the top of your list.</p>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closePinModal()">Cancel</button>
+                <button class="confirm-btn" onclick="confirmPin()">Pin</button>
             </div>
         </div>
     </div>
@@ -471,8 +564,8 @@
     <!-- Main Chat Area -->
     <div class="main-chat">
         <div class="main-header">
-            <button class="mobile-toggle" onclick="openMobileSidebar()">☰</button>
-            <div class="main-header-left">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <div class="header-logo" id="headerLogo">
                 <img src="av.png" alt="DeepRWA">
                 <span>DeepRWA</span>
             </div>
@@ -487,7 +580,10 @@
         const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
         let isCreatingNewChat = false;
         let deleteTargetId = null;
+        let pinTargetId = null;
+        let shareTargetId = null;
         let isSidebarOpen = true;
+        let currentDropdownId = null;
         
         // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
@@ -511,12 +607,8 @@
         function createNewChat() {
             if (isCreatingNewChat) return;
             
-            // If there's a current chat and it's empty, don't create a new one
-            if (currentChatId && isChatEmpty(currentChatId)) {
-                return;
-            }
+            if (currentChatId && isChatEmpty(currentChatId)) return;
             
-            // Check if there's already an empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -535,7 +627,8 @@
                 name: 'New Chat',
                 created: now.toISOString(),
                 time: timeStr,
-                messages: []
+                messages: [],
+                pinned: false
             };
             
             currentChatId = id;
@@ -579,6 +672,47 @@
             closeDeleteModal();
         }
         
+        function openShareModal(id) {
+            shareTargetId = id;
+            const url = window.location.href + '?chat=' + id;
+            document.getElementById('shareLinkInput').value = url;
+            document.getElementById('shareModal').classList.add('active');
+        }
+        
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+            shareTargetId = null;
+        }
+        
+        function copyShareLink() {
+            const input = document.getElementById('shareLinkInput');
+            input.select();
+            document.execCommand('copy');
+            const btn = input.nextElementSibling;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }
+        
+        function openPinModal(id) {
+            pinTargetId = id;
+            document.getElementById('pinModal').classList.add('active');
+        }
+        
+        function closePinModal() {
+            document.getElementById('pinModal').classList.remove('active');
+            pinTargetId = null;
+        }
+        
+        function confirmPin() {
+            if (pinTargetId && chats[pinTargetId]) {
+                chats[pinTargetId].pinned = !chats[pinTargetId].pinned;
+                saveChats();
+                renderChatList();
+            }
+            closePinModal();
+        }
+        
         function switchChat(id) {
             if (id === currentChatId) return;
             currentChatId = id;
@@ -599,12 +733,48 @@
             }
         }
         
+        function toggleDropdown(id, event) {
+            event.stopPropagation();
+            if (currentDropdownId === id) {
+                closeDropdown();
+                return;
+            }
+            closeDropdown();
+            const dropdown = document.getElementById('dropdown_' + id);
+            if (dropdown) {
+                dropdown.classList.add('active');
+                currentDropdownId = id;
+            }
+        }
+        
+        function closeDropdown() {
+            if (currentDropdownId) {
+                const dropdown = document.getElementById('dropdown_' + currentDropdownId);
+                if (dropdown) dropdown.classList.remove('active');
+                currentDropdownId = null;
+            }
+        }
+        
+        function handleChatAction(action, id) {
+            closeDropdown();
+            if (action === 'share') {
+                openShareModal(id);
+            } else if (action === 'pin') {
+                openPinModal(id);
+            } else if (action === 'delete') {
+                openDeleteModal(id);
+            }
+        }
+        
         function renderChatList() {
             const list = document.getElementById('chatList');
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
             
+            // Sort: pinned first, then by creation date
             keys.sort((a, b) => {
+                if (chats[a].pinned && !chats[b].pinned) return -1;
+                if (!chats[a].pinned && chats[b].pinned) return 1;
                 return new Date(chats[b].created) - new Date(chats[a].created);
             });
             
@@ -618,12 +788,16 @@
                     const timeStr = chat.time || '--:--';
                     const name = chat.name || 'New Chat';
                     const isDeletable = keys.length > 1;
+                    const pinIcon = chat.pinned ? '📌' : '';
                     html += `
                         <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
-                            <span class="chat-name">💬 ${name}</span>
+                            <span class="chat-name">${pinIcon} ${name}</span>
                             <span class="time">${timeStr}</span>
-                            <div class="item-actions">
-                                ${isDeletable ? `<button class="item-btn delete" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>` : ''}
+                            <button class="more-btn" onclick="toggleDropdown('${key}', event)" title="More options">⋯</button>
+                            <div class="dropdown-menu" id="dropdown_${key}">
+                                <button onclick="handleChatAction('share', '${key}')">Share</button>
+                                <button onclick="handleChatAction('pin', '${key}')">${chat.pinned ? 'Unpin' : 'Pin'}</button>
+                                ${isDeletable ? `<button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -656,6 +830,7 @@
             const sidebar = document.getElementById('desktopSidebar');
             isSidebarOpen = !isSidebarOpen;
             sidebar.classList.toggle('closed', !isSidebarOpen);
+            // The header logo is always visible, no need to toggle it
         }
         
         function openMobileSidebar() {
@@ -668,12 +843,16 @@
             document.getElementById('mobileOverlay').classList.remove('active');
         }
         
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            closeDropdown();
+        });
+        
         // Listen for messages from the iframe
         window.addEventListener('message', function(event) {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === 'user_message' && data.message) {
-                    // If no chat exists, create one when user sends first message
                     if (!currentChatId || !chats[currentChatId]) {
                         const id = 'chat_' + Date.now();
                         const now = new Date();
@@ -683,7 +862,8 @@
                             name: 'New Chat',
                             created: now.toISOString(),
                             time: timeStr,
-                            messages: []
+                            messages: [],
+                            pinned: false
                         };
                         currentChatId = id;
                         localStorage.setItem('deeprwa_current_chat', id);
@@ -710,6 +890,8 @@
         setTimeout(() => {
             overlay.classList.add('hidden');
         }, 3000);
+        
+        // Ensure header logo is always visible (it stays in the main header)
     </script>
 </body>
 </html>
