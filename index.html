@@ -6,11 +6,7 @@
     <title>DeepRWA</title>
     <link rel="icon" href="av.png" type="image/png">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -230,18 +226,152 @@
         .main-header.has-logo .menu-btn { display: flex; }
         .main-header.has-logo .header-logo { display: flex; }
 
-        .agent-container {
+        .chat-area {
             flex: 1;
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 24px;
+            overflow-y: auto;
             background: #343541;
         }
 
-        .agent-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        .chat-message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            background: #1E88E5;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.assistant {
+            align-self: flex-start;
+            background: #40414f;
+            color: #ececf1;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message .timestamp {
+            font-size: 11px;
+            color: #8e8e93;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-message.user .timestamp {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #6e6e72;
+            text-align: center;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ececf1;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            max-width: 400px;
+            color: #8e8e93;
+        }
+
+        .chat-input-area {
+            padding: 12px 20px 16px 20px;
             background: #343541;
+            flex-shrink: 0;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #40414f;
+            border-radius: 12px;
+            padding: 8px 12px;
+            border: 1px solid #5a5a5e;
+            transition: border-color 0.2s;
+            max-width: 100%;
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: #1E88E5;
+        }
+
+        .chat-input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ececf1;
+            font-size: 15px;
+            padding: 8px 4px;
+            outline: none;
+            font-family: inherit;
+            min-height: 32px;
+        }
+
+        .chat-input-wrapper input::placeholder {
+            color: #8e8e93;
+        }
+
+        .chat-input-wrapper .send-btn {
+            background: #3d3d40;
+            border: none;
+            color: #a0a0a5;
+            padding: 6px 18px;
+            border-radius: 8px;
+            cursor: default;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            flex-shrink: 0;
+            line-height: 1.4;
+            transition: all 0.2s;
+            min-width: 56px;
+            text-align: center;
+        }
+
+        .chat-input-wrapper .send-btn.active {
+            background: #1E88E5;
+            color: white;
+            cursor: pointer;
+        }
+
+        .chat-input-wrapper .send-btn.active:hover {
+            background: #1565C0;
+        }
+
+        .chat-input-wrapper .send-btn.sending {
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+        }
+
+        .chat-input-wrapper .send-btn.sending:hover {
+            background: #c0392b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .loading-overlay {
@@ -305,8 +435,6 @@
         .modal-buttons .cancel-btn:hover { background: #4a4a4d; }
         .modal-buttons .confirm-btn { background: #e74c3c; color: white; }
         .modal-buttons .confirm-btn:hover { background: #c0392b; }
-        .modal-buttons .share-copy-btn { background: #1E88E5; color: white; }
-        .modal-buttons .share-copy-btn:hover { background: #1565C0; }
 
         .share-link-container {
             display: flex;
@@ -385,6 +513,8 @@
             .main-header .header-logo img { width: 24px; height: 24px; }
             .main-header.has-logo .menu-btn { display: flex; }
             .main-header.has-logo .header-logo { display: flex; }
+            .chat-area { padding: 12px 16px; }
+            .chat-message { max-width: 90%; }
         }
     </style>
 </head>
@@ -461,23 +591,66 @@
                 <span>DeepRWA</span>
             </div>
         </div>
-        <div class="agent-container" id="agentContainer">
-            <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-area" id="chatArea">
+            <!-- Messages will be rendered here -->
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <input type="text" id="chatInput" placeholder="Ask me anything about Rwanda..." autofocus>
+                <button class="send-btn" id="sendBtn">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
+        // ===== SYSTEM PROMPT =====
+        const SYSTEM_PROMPT = `You are DeepRWA, a professional AI assistant specialized in Rwanda.
+
+**About You:**
+- Created by Emmanuel Mukiza under his company "The Star🌟"
+- Emmanuel graduated from Karenge Adventist Secondary School (KASS) with an Advanced Level certificate in Computer System and Architecture (CSA)
+
+**Your Core Rule:**
+- You must ONLY answer questions related to Rwanda.
+- For greetings, respond warmly but remind the user of your Rwanda focus.
+- If a user asks about other countries, politely state you specialize in Rwanda.
+
+**Your Main Topics:**
+1. Location Finder: Provinces, districts, sectors, cells, villages
+2. Product & Price Finder: Where to find products and price ranges
+3. Famous People: Biographies of notable Rwandans
+4. History & Culture: Rwanda's history and cultural traditions
+5. Tourism & Travel: Tourist attractions, national parks, travel tips
+6. Events & News: Current events and festivals in Rwanda
+
+**Response Rules:**
+- Be warm, friendly, and conversational
+- Greet users cheerfully
+- Always maintain a respectful tone
+- Be concise and clear
+
+**Social Media Policy:**
+- Share Emmanuel's social media only when specifically asked:
+  - YouTube: https://www.youtube.com/@Th_estarME
+  - Instagram: https://www.instagram.com/mukiza_me/
+  - Facebook: https://web.facebook.com/meMukiza
+  - X: https://x.com/mukiza_me
+  - TikTok: https://www.tiktok.com/@the_star_mukiza`;
+
+        // ===== CHAT DATA =====
+        let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
+        let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
+        let isSending = false;
         let isCreatingNewChat = false;
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
 
-        // ===== CHAT DATA =====
-        let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
-        let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
-
-        // FIX 4: NO DEFAULT CHAT - empty state on first visit
+        // NO DEFAULT CHAT - empty state on first visit
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -497,7 +670,90 @@
             header.classList.toggle('has-logo', !isSidebarOpen);
         }
 
-        // ===== FIX 1: NEW CHAT BUTTON - ONLY IF CURRENT CHAT HAS MESSAGES =====
+        // ===== RENDER CHAT MESSAGES =====
+        function renderChatMessages() {
+            const chatArea = document.getElementById('chatArea');
+            
+            if (!currentChatId || !chats[currentChatId] || !chats[currentChatId].messages || chats[currentChatId].messages.length === 0) {
+                chatArea.innerHTML = `
+                    <div class="empty-state">
+                        <h2>DeepRWA</h2>
+                        <p>Your AI assistant for Rwanda. Where should we start right now?</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const messages = chats[currentChatId].messages;
+            let html = '';
+            for (const msg of messages) {
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                html += `
+                    <div class="chat-message ${msg.role}">
+                        ${msg.content}
+                        <span class="timestamp">${time}</span>
+                    </div>
+                `;
+            }
+            chatArea.innerHTML = html;
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // ===== RENDER CHAT LIST =====
+        function renderChatList() {
+            const list = document.getElementById('chatList');
+            const mobileList = document.getElementById('mobileChatList');
+            const keys = Object.keys(chats);
+
+            if (keys.length === 0) {
+                const msg = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.</div>';
+                list.innerHTML = msg;
+                mobileList.innerHTML = msg;
+                return;
+            }
+
+            keys.sort((a, b) => {
+                if (chats[a].pinned && !chats[b].pinned) return -1;
+                if (!chats[a].pinned && chats[b].pinned) return 1;
+                return new Date(chats[b].created) - new Date(chats[a].created);
+            });
+
+            let html = '';
+            for (const key of keys) {
+                const chat = chats[key];
+                const isActive = key === currentChatId;
+                const pinIcon = chat.pinned ? '📌' : '';
+                const isDeletable = keys.length > 1;
+                html += `
+                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
+                        <span class="chat-name">${pinIcon} ${chat.name}</span>
+                        <span class="time">${chat.time}</span>
+                        <button class="more-btn" onclick="event.stopPropagation();toggleDropdown('${key}', event)">⋯</button>
+                        <div class="dropdown-menu" id="dropdown_${key}">
+                            <button onclick="handleChatAction('share', '${key}')">Share</button>
+                            <button onclick="handleChatAction('pin', '${key}')">${chat.pinned ? 'Unpin' : 'Pin'}</button>
+                            ${isDeletable ? `<button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            list.innerHTML = html;
+            mobileList.innerHTML = html;
+        }
+
+        // ===== SWITCH CHAT =====
+        function switchChat(id) {
+            if (id === currentChatId) return;
+            currentChatId = id;
+            localStorage.setItem('deeprwa_current_chat', id);
+            renderChatList();
+            renderChatMessages();
+            closeMobileSidebar();
+            updateSendButton();
+        }
+
+        // ===== CREATE NEW CHAT =====
         function createNewChat() {
             if (isCreatingNewChat) return;
 
@@ -518,7 +774,7 @@
                 localStorage.setItem('deeprwa_current_chat', id);
                 saveChats();
                 renderChatList();
-                updateAgent();
+                renderChatMessages();
                 closeMobileSidebar();
                 return;
             }
@@ -549,103 +805,19 @@
                 localStorage.setItem('deeprwa_current_chat', id);
                 saveChats();
                 renderChatList();
-                updateAgent();
+                renderChatMessages();
                 closeMobileSidebar();
                 setTimeout(() => { isCreatingNewChat = false; }, 500);
             }
         }
 
-        // ===== DELETE, SHARE, PIN =====
-        function openDeleteModal(id) {
-            if (Object.keys(chats).length <= 1) return;
-            deleteTargetId = id;
-            document.getElementById('deleteModal').classList.add('active');
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            deleteTargetId = null;
-        }
-
-        function confirmDelete() {
-            if (deleteTargetId) {
-                delete chats[deleteTargetId];
-                const keys = Object.keys(chats);
-                if (keys.length > 0) {
-                    currentChatId = keys[0];
-                } else {
-                    currentChatId = null;
-                    localStorage.removeItem('deeprwa_current_chat');
-                }
-                localStorage.setItem('deeprwa_current_chat', currentChatId);
-                saveChats();
-                renderChatList();
-                updateAgent();
-            }
-            closeDeleteModal();
-        }
-
-        function openShareModal(id) {
-            const url = window.location.href + '?chat=' + id;
-            document.getElementById('shareLinkInput').value = url;
-            document.getElementById('shareModal').classList.add('active');
-        }
-
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.remove('active');
-        }
-
-        function copyShareLink() {
-            const input = document.getElementById('shareLinkInput');
-            input.select();
-            document.execCommand('copy');
-            const btn = input.nextElementSibling;
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-        }
-
-        function togglePin(id) {
-            if (chats[id]) {
-                chats[id].pinned = !chats[id].pinned;
-                saveChats();
-                renderChatList();
-            }
-        }
-
-        function switchChat(id) {
-            if (id === currentChatId) return;
-            currentChatId = id;
-            localStorage.setItem('deeprwa_current_chat', id);
-            renderChatList();
-            updateAgent();
-            closeMobileSidebar();
-        }
-
-        // ===== FIX 2 & 5: STORE ALL MESSAGES AND UPDATE CHAT NAME =====
-        function addMessageToChat(chatId, role, content) {
-            if (!chats[chatId]) return;
-            if (!chats[chatId].messages) chats[chatId].messages = [];
-            chats[chatId].messages.push({ role: role, content: content });
-            
-            // If this is the first user message, update the chat name
-            if (role === 'user' && chats[chatId].name === 'New Chat') {
-                const name = content.length > 25 ? content.substring(0, 25) + '...' : content;
-                chats[chatId].name = name;
-            }
-            
-            saveChats();
-            renderChatList();
-        }
-
-        // ===== FIX 3: DROPDOWN MENU =====
+        // ===== TOGGLE DROPDOWN =====
         function toggleDropdown(id, event) {
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
             }
 
-            // Close any open dropdown
             if (currentDropdownId && currentDropdownId !== id) {
                 const old = document.getElementById('dropdown_' + currentDropdownId);
                 if (old) old.classList.remove('active');
@@ -671,6 +843,7 @@
             }
         }
 
+        // ===== HANDLE CHAT ACTIONS =====
         function handleChatAction(action, id) {
             closeDropdown();
             if (action === 'share') openShareModal(id);
@@ -678,60 +851,227 @@
             else if (action === 'delete') openDeleteModal(id);
         }
 
-        function renderChatList() {
-            const list = document.getElementById('chatList');
-            const mobileList = document.getElementById('mobileChatList');
-            const keys = Object.keys(chats);
+        // ===== DELETE CHAT =====
+        function openDeleteModal(id) {
+            if (Object.keys(chats).length <= 1) return;
+            deleteTargetId = id;
+            document.getElementById('deleteModal').classList.add('active');
+        }
 
-            // FIX 4: Empty state - "No chats yet."
-            if (keys.length === 0) {
-                const msg = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.</div>';
-                list.innerHTML = msg;
-                mobileList.innerHTML = msg;
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteTargetId = null;
+        }
+
+        function confirmDelete() {
+            if (deleteTargetId) {
+                delete chats[deleteTargetId];
+                const keys = Object.keys(chats);
+                if (keys.length > 0) {
+                    currentChatId = keys[0];
+                } else {
+                    currentChatId = null;
+                    localStorage.removeItem('deeprwa_current_chat');
+                }
+                localStorage.setItem('deeprwa_current_chat', currentChatId);
+                saveChats();
+                renderChatList();
+                renderChatMessages();
+            }
+            closeDeleteModal();
+        }
+
+        // ===== PIN CHAT =====
+        function togglePin(id) {
+            if (chats[id]) {
+                chats[id].pinned = !chats[id].pinned;
+                saveChats();
+                renderChatList();
+            }
+        }
+
+        // ===== SHARE CHAT =====
+        function openShareModal(id) {
+            const url = window.location.href + '?chat=' + id;
+            document.getElementById('shareLinkInput').value = url;
+            document.getElementById('shareModal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('shareLinkInput');
+            input.select();
+            document.execCommand('copy');
+            const btn = input.nextElementSibling;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+        }
+
+        // ===== UPDATE SEND BUTTON =====
+        function updateSendButton() {
+            const input = document.getElementById('chatInput');
+            const btn = document.getElementById('sendBtn');
+            const hasText = input.value.trim().length > 0;
+            
+            if (isSending) {
+                btn.textContent = 'Stop';
+                btn.className = 'send-btn sending';
                 return;
             }
+            
+            if (hasText) {
+                btn.textContent = 'Send';
+                btn.className = 'send-btn active';
+            } else {
+                btn.textContent = 'Send';
+                btn.className = 'send-btn';
+            }
+        }
 
-            keys.sort((a, b) => {
-                if (chats[a].pinned && !chats[b].pinned) return -1;
-                if (!chats[a].pinned && chats[b].pinned) return 1;
-                return new Date(chats[b].created) - new Date(chats[a].created);
-            });
+        // ===== SEND MESSAGE =====
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message || isSending) return;
 
-            let html = '';
-            for (const key of keys) {
-                const chat = chats[key];
-                const isActive = key === currentChatId;
-                const pinIcon = chat.pinned ? '📌' : '';
-                const isDeletable = keys.length > 1;
-                html += `
-                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
-                        <span class="chat-name">${pinIcon} ${chat.name}</span>
-                        <span class="time">${chat.time}</span>
-                        <button class="more-btn" onclick="toggleDropdown('${key}', event)">⋯</button>
-                        <div class="dropdown-menu" id="dropdown_${key}">
-                            <button onclick="handleChatAction('share', '${key}')">Share</button>
-                            <button onclick="handleChatAction('pin', '${key}')">${chat.pinned ? 'Unpin' : 'Pin'}</button>
-                            ${isDeletable ? `<button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>` : ''}
-                        </div>
-                    </div>
-                `;
+            // If no chat exists, create one
+            if (!currentChatId || !chats[currentChatId]) {
+                const id = 'chat_' + Date.now();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
+                currentChatId = id;
+                localStorage.setItem('deeprwa_current_chat', id);
+                saveChats();
+                renderChatList();
             }
 
-            list.innerHTML = html;
-            mobileList.innerHTML = html;
+            // Add user message
+            if (!chats[currentChatId].messages) chats[currentChatId].messages = [];
+            chats[currentChatId].messages.push({ role: 'user', content: message });
+            
+            // Update chat name if it's the first message
+            if (chats[currentChatId].name === 'New Chat') {
+                const name = message.length > 25 ? message.substring(0, 25) + '...' : message;
+                chats[currentChatId].name = name;
+            }
+            
+            saveChats();
+            renderChatMessages();
+            renderChatList();
+
+            // Clear input
+            input.value = '';
+            updateSendButton();
+
+            // Set sending state
+            isSending = true;
+            updateSendButton();
+
+            // Get AI response
+            getAIResponse(message);
         }
 
-        function updateAgent() {
-            const frame = document.getElementById('agentFrame');
-            frame.src = TASKADE_LINK + '?t=' + Date.now();
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.remove('hidden');
-            frame.onload = function() {
-                setTimeout(() => { overlay.classList.add('hidden'); }, 400);
-            };
-            setTimeout(() => { overlay.classList.add('hidden'); }, 2500);
+        // ===== GET AI RESPONSE =====
+        function getAIResponse(userMessage) {
+            // Build conversation history
+            const messages = [
+                { role: 'system', content: SYSTEM_PROMPT }
+            ];
+            
+            // Add chat history (last 20 messages)
+            const chatMessages = chats[currentChatId].messages || [];
+            const lastMessages = chatMessages.slice(-20);
+            for (const msg of lastMessages) {
+                messages.push({ role: msg.role, content: msg.content });
+            }
+
+            // Use a free AI API (DeepSeek)
+            fetch('https://api.deepseek.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer sk-...' // You'll need to add your own key
+                },
+                body: JSON.stringify({
+                    model: 'deepseek-chat',
+                    messages: messages,
+                    temperature: 0.7,
+                    max_tokens: 800
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const response = data.choices[0].message.content;
+                addAssistantMessage(response);
+            })
+            .catch(error => {
+                // Fallback responses if API fails
+                const fallback = getFallbackResponse(userMessage);
+                addAssistantMessage(fallback);
+            });
         }
 
+        // ===== ADD ASSISTANT MESSAGE =====
+        function addAssistantMessage(content) {
+            if (!currentChatId || !chats[currentChatId]) return;
+            
+            if (!chats[currentChatId].messages) chats[currentChatId].messages = [];
+            chats[currentChatId].messages.push({ role: 'assistant', content: content });
+            saveChats();
+            renderChatMessages();
+            renderChatList();
+            
+            isSending = false;
+            updateSendButton();
+        }
+
+        // ===== FALLBACK RESPONSES =====
+        function getFallbackResponse(userInput) {
+            const lower = userInput.toLowerCase();
+            
+            if (lower.includes('capital') && lower.includes('rwanda')) {
+                return 'The capital of Rwanda is **Kigali**. It is the country\'s political, economic, and cultural center.';
+            }
+            if (lower.includes('culture') && lower.includes('rwanda')) {
+                return 'Rwanda has a rich cultural heritage! Traditional Intore dance, vibrant arts and crafts, and community values like Umuganda (community work) are central to Rwandan culture.';
+            }
+            if (lower.includes('paul kagame')) {
+                return 'Paul Kagame is the President of Rwanda. He has been instrumental in Rwanda\'s remarkable development and transformation since 1994.';
+            }
+            if (lower.includes('tourism') || lower.includes('tourist')) {
+                return 'Rwanda is famous for its mountain gorillas in Volcanoes National Park, beautiful Lake Kivu, Nyungwe Forest, and Akagera National Park for wildlife safaris!';
+            }
+            if (lower.includes('history') && lower.includes('rwanda')) {
+                return 'Rwanda has a complex and rich history, from the ancient Kingdom of Rwanda to independence in 1962, and its remarkable recovery and development since 1994.';
+            }
+            if (lower.includes('hello') || lower.includes('hi')) {
+                return 'Hello! 👋 I\'m DeepRWA, your AI assistant for Rwanda. How can I help you explore Rwanda today?';
+            }
+            if (lower.includes('rwanda')) {
+                return 'I\'m here to help with anything about Rwanda! Feel free to ask me about its culture, history, tourism, famous people, or any specific topic you\'re curious about.';
+            }
+            
+            return 'I\'m DeepRWA, specialized in Rwanda. I can help you with Rwandan culture, history, tourism, famous people, and more. What would you like to know about Rwanda?';
+        }
+
+        // ===== TOGGLE SIDEBAR =====
         function toggleSidebar() {
             isSidebarOpen = !isSidebarOpen;
             document.getElementById('desktopSidebar').classList.toggle('closed', !isSidebarOpen);
@@ -748,69 +1088,60 @@
             document.getElementById('mobileOverlay').classList.remove('active');
         }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.more-btn') && !e.target.closest('.dropdown-menu')) {
-                closeDropdown();
-            }
-        });
+        // ===== INITIALIZE =====
+        document.addEventListener('DOMContentLoaded', function() {
+            renderChatList();
+            renderChatMessages();
+            updateHeaderVisibility();
+            updateSendButton();
 
-        // ===== MESSAGE LISTENER =====
-        // This listens for messages from the iframe and stores them
-        window.addEventListener('message', function(event) {
-            try {
-                let data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                
-                // Handle user messages
-                if (data && data.type === 'user_message' && data.message) {
-                    const msg = data.message.trim();
-                    if (!msg) return;
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
 
-                    // If no chat exists, create one
-                    if (!currentChatId || !chats[currentChatId]) {
-                        const id = 'chat_' + Date.now();
-                        const now = new Date();
-                        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        chats[id] = {
-                            id: id,
-                            name: 'New Chat',
-                            created: now.toISOString(),
-                            time: timeStr,
-                            messages: [],
-                            pinned: false
-                        };
-                        currentChatId = id;
-                        localStorage.setItem('deeprwa_current_chat', id);
-                        saveChats();
-                        renderChatList();
+            input.addEventListener('input', updateSendButton);
+
+            sendBtn.addEventListener('click', function() {
+                if (isSending) {
+                    isSending = false;
+                    updateSendButton();
+                } else {
+                    sendMessage();
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (isSending) {
+                        isSending = false;
+                        updateSendButton();
+                    } else {
+                        sendMessage();
                     }
+                }
+            });
 
-                    // Store the user message
-                    addMessageToChat(currentChatId, 'user', msg);
+            // Click outside dropdown closes it
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.more-btn') && !e.target.closest('.dropdown-menu')) {
+                    closeDropdown();
                 }
-                
-                // Handle assistant responses (if the iframe sends them)
-                if (data && data.type === 'assistant_message' && data.message) {
-                    const msg = data.message.trim();
-                    if (!msg || !currentChatId || !chats[currentChatId]) return;
-                    
-                    // Store the assistant message
-                    addMessageToChat(currentChatId, 'assistant', msg);
-                }
-            } catch (e) {
-                // Ignore parsing errors
-            }
+            });
+
+            // Focus input
+            setTimeout(() => input.focus(), 500);
+
+            // Hide loading overlay
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('hidden');
         });
 
-        // ============ INITIALIZE ============
-        renderChatList();
-        updateHeaderVisibility();
-
-        const overlay = document.getElementById('loadingOverlay');
-        overlay.classList.remove('hidden');
+        // Handle reload/restore state
         window.addEventListener('load', function() {
-            setTimeout(() => { overlay.classList.add('hidden'); }, 800);
+            renderChatList();
+            renderChatMessages();
+            updateSendButton();
         });
-        setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
     </script>
 </body>
 </html>
