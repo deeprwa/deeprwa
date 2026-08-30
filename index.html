@@ -230,7 +230,6 @@
         .main-header.has-logo .menu-btn { display: flex; }
         .main-header.has-logo .header-logo { display: flex; }
 
-        /* ===== AGENT CONTAINER ===== */
         .agent-container {
             flex: 1;
             position: relative;
@@ -243,12 +242,13 @@
             height: 100%;
             border: none;
             background: #343541;
+            pointer-events: none;
         }
 
-        /* ===== CUSTOM INPUT - PERFECT CLONE OF TASKADE ===== */
+        /* ===== CUSTOM INPUT - PERFECT CLONE ===== */
         .custom-input-overlay {
             position: absolute;
-            bottom: 20px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             width: calc(100% - 40px);
@@ -256,12 +256,12 @@
             z-index: 30;
             background: #40414f;
             border-radius: 12px;
-            padding: 10px 16px;
+            padding: 8px 12px;
             border: 1px solid #5a5a5e;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             pointer-events: auto;
             transition: border-color 0.2s;
         }
@@ -276,10 +276,10 @@
             border: none;
             color: #ececf1;
             font-size: 15px;
-            padding: 6px 4px;
+            padding: 8px 4px;
             outline: none;
             font-family: inherit;
-            min-height: 30px;
+            min-height: 36px;
         }
 
         .custom-input-overlay input::placeholder {
@@ -287,22 +287,40 @@
         }
 
         .custom-input-overlay .send-btn {
-            background: #1E88E5;
+            background: #3d3d40;
             border: none;
-            color: white;
-            padding: 7px 18px;
+            color: #a0a0a5;
+            padding: 6px 16px;
             border-radius: 8px;
-            cursor: pointer;
+            cursor: default;
             font-size: 14px;
             font-weight: 500;
-            transition: background 0.2s;
             font-family: inherit;
             flex-shrink: 0;
             line-height: 1.4;
+            transition: all 0.2s;
+            min-width: 60px;
+            text-align: center;
         }
 
-        .custom-input-overlay .send-btn:hover {
+        .custom-input-overlay .send-btn.active {
+            background: #1E88E5;
+            color: white;
+            cursor: pointer;
+        }
+
+        .custom-input-overlay .send-btn.active:hover {
             background: #1565C0;
+        }
+
+        .custom-input-overlay .send-btn.sending {
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+        }
+
+        .custom-input-overlay .send-btn.sending:hover {
+            background: #c0392b;
         }
 
         .loading-overlay {
@@ -456,8 +474,8 @@
             .main-header.has-logo .header-logo { display: flex; }
             .custom-input-overlay {
                 width: calc(100% - 24px);
-                bottom: 12px;
-                padding: 8px 12px;
+                bottom: 8px;
+                padding: 6px 10px;
             }
         }
     </style>
@@ -469,7 +487,7 @@
         <div class="loading-text">Loading DeepRWA...</div>
     </div>
 
-    <!-- Modals -->
+    <!-- Delete Modal -->
     <div class="modal-overlay" id="deleteModal">
         <div class="modal">
             <h3>Delete this chat?</h3>
@@ -481,6 +499,7 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
     <div class="modal-overlay" id="shareModal">
         <div class="modal">
             <h3>Share this chat</h3>
@@ -551,10 +570,12 @@
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
+        let isSending = false;
 
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
 
+        // NO DEFAULT CHAT - empty state on first visit
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -574,14 +595,49 @@
             header.classList.toggle('has-logo', !isSidebarOpen);
         }
 
-        function createNewChat() {
-            if (isCreatingNewChat) return;
+        // ===== FIX 4: CREATE CHAT ONLY WHEN USER SENDS MESSAGE =====
+        function createChatFromMessage(message) {
+            if (!message || !message.trim()) return;
 
+            // If no chat exists, create one
             if (!currentChatId || !chats[currentChatId]) {
                 const id = 'chat_' + Date.now();
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                chats[id] = { id, name: 'New Chat', created: now.toISOString(), time: timeStr, messages: [], pinned: false };
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
+                currentChatId = id;
+                localStorage.setItem('deeprwa_current_chat', id);
+                saveChats();
+                renderChatList();
+                return true;
+            }
+            return false;
+        }
+
+        // ===== FIX 1: NEW CHAT BUTTON - ONLY IF CURRENT CHAT HAS MESSAGES =====
+        function createNewChat() {
+            if (isCreatingNewChat) return;
+
+            // If no chat exists, create one
+            if (!currentChatId || !chats[currentChatId]) {
+                const id = 'chat_' + Date.now();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
                 currentChatId = id;
                 localStorage.setItem('deeprwa_current_chat', id);
                 saveChats();
@@ -591,6 +647,7 @@
                 return;
             }
 
+            // Check if there's already an empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -598,12 +655,20 @@
                 }
             }
 
+            // ONLY create new if current chat has messages (NOT empty)
             if (!isChatEmpty(currentChatId)) {
                 isCreatingNewChat = true;
                 const id = 'chat_' + Date.now();
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                chats[id] = { id, name: 'New Chat', created: now.toISOString(), time: timeStr, messages: [], pinned: false };
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
                 currentChatId = id;
                 localStorage.setItem('deeprwa_current_chat', id);
                 saveChats();
@@ -614,7 +679,21 @@
             }
         }
 
+        // ===== FIX 2: CHAT NAME UPDATES TO USER'S FIRST MESSAGE =====
+        function updateChatName(id, firstMessage) {
+            if (chats[id] && chats[id].name === 'New Chat') {
+                const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
+                chats[id].name = name;
+                if (!chats[id].messages) chats[id].messages = [];
+                chats[id].messages.push({ role: 'user', content: firstMessage });
+                saveChats();
+                renderChatList();
+            }
+        }
+
+        // ===== DELETE, SHARE, PIN =====
         function openDeleteModal(id) {
+            if (Object.keys(chats).length <= 1) return;
             deleteTargetId = id;
             document.getElementById('deleteModal').classList.add('active');
         }
@@ -657,6 +736,7 @@
             input.select();
             document.execCommand('copy');
             const btn = input.nextElementSibling;
+            const originalText = btn.textContent;
             btn.textContent = 'Copied!';
             setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
         }
@@ -678,17 +758,6 @@
             closeMobileSidebar();
         }
 
-        function updateChatName(id, firstMessage) {
-            if (chats[id] && chats[id].name === 'New Chat') {
-                const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
-                chats[id].name = name;
-                if (!chats[id].messages) chats[id].messages = [];
-                chats[id].messages.push({ role: 'user', content: firstMessage });
-                saveChats();
-                renderChatList();
-            }
-        }
-
         function sendMessageToAgent(message) {
             try {
                 const iframe = document.getElementById('agentFrame');
@@ -698,10 +767,14 @@
             } catch (e) {}
         }
 
+        // ===== FIX 3: DROPDOWN MENU =====
         function toggleDropdown(id, event) {
-            event.stopPropagation();
-            event.preventDefault();
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
 
+            // Close any open dropdown
             if (currentDropdownId && currentDropdownId !== id) {
                 const old = document.getElementById('dropdown_' + currentDropdownId);
                 if (old) old.classList.remove('active');
@@ -739,6 +812,7 @@
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
 
+            // FIX 4: Empty state - "No chats yet."
             if (keys.length === 0) {
                 const msg = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.</div>';
                 list.innerHTML = msg;
@@ -757,6 +831,7 @@
                 const chat = chats[key];
                 const isActive = key === currentChatId;
                 const pinIcon = chat.pinned ? '📌' : '';
+                const isDeletable = keys.length > 1;
                 html += `
                     <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
                         <span class="chat-name">${pinIcon} ${chat.name}</span>
@@ -765,7 +840,7 @@
                         <div class="dropdown-menu" id="dropdown_${key}">
                             <button onclick="handleChatAction('share', '${key}')">Share</button>
                             <button onclick="handleChatAction('pin', '${key}')">${chat.pinned ? 'Unpin' : 'Pin'}</button>
-                            <button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>
+                            ${isDeletable ? `<button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -808,6 +883,7 @@
             }
         });
 
+        // ===== MESSAGE LISTENER =====
         window.addEventListener('message', function(event) {
             try {
                 let data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
@@ -819,7 +895,14 @@
                         const id = 'chat_' + Date.now();
                         const now = new Date();
                         const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        chats[id] = { id, name: 'New Chat', created: now.toISOString(), time: timeStr, messages: [], pinned: false };
+                        chats[id] = {
+                            id: id,
+                            name: 'New Chat',
+                            created: now.toISOString(),
+                            time: timeStr,
+                            messages: [],
+                            pinned: false
+                        };
                         currentChatId = id;
                         localStorage.setItem('deeprwa_current_chat', id);
                         saveChats();
@@ -835,24 +918,42 @@
         const customInput = document.getElementById('customInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        function updateSendButton() {
+            const hasText = customInput.value.trim().length > 0;
+            if (isSending) {
+                sendBtn.textContent = 'Stop';
+                sendBtn.className = 'send-btn sending';
+                return;
+            }
+            if (hasText) {
+                sendBtn.textContent = 'Send';
+                sendBtn.className = 'send-btn active';
+            } else {
+                sendBtn.textContent = 'Send';
+                sendBtn.className = 'send-btn';
+            }
+        }
+
         function sendMessage() {
             const message = customInput.value.trim();
-            if (!message) return;
+            if (!message || isSending) return;
 
+            // Create chat if none exists
             if (!currentChatId || !chats[currentChatId]) {
-                const id = 'chat_' + Date.now();
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                chats[id] = { id, name: 'New Chat', created: now.toISOString(), time: timeStr, messages: [], pinned: false };
-                currentChatId = id;
-                localStorage.setItem('deeprwa_current_chat', id);
-                saveChats();
-                renderChatList();
+                createChatFromMessage(message);
             }
 
+            // Update chat name
             updateChatName(currentChatId, message);
+
+            // Set sending state
+            isSending = true;
+            updateSendButton();
+
+            // Send to agent
             sendMessageToAgent(message);
 
+            // Try to fill Taskade's input
             try {
                 const iframe = document.getElementById('agentFrame');
                 if (iframe && iframe.contentDocument) {
@@ -875,18 +976,47 @@
                 }
             } catch (e) {}
 
-            customInput.value = '';
-            customInput.focus();
+            // Simulate sending complete
+            setTimeout(() => {
+                isSending = false;
+                customInput.value = '';
+                updateSendButton();
+                customInput.focus();
+            }, 1500);
         }
 
-        sendBtn.addEventListener('click', sendMessage);
-        customInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
+        function stopSending() {
+            if (isSending) {
+                isSending = false;
+                sendBtn.textContent = 'Send';
+                sendBtn.className = 'send-btn';
+                customInput.focus();
+            }
+        }
+
+        // Input events
+        customInput.addEventListener('input', updateSendButton);
+
+        sendBtn.addEventListener('click', function() {
+            if (isSending) {
+                stopSending();
+            } else {
                 sendMessage();
             }
         });
 
+        customInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isSending) {
+                    stopSending();
+                } else {
+                    sendMessage();
+                }
+            }
+        });
+
+        // Focus input
         setTimeout(() => customInput.focus(), 1500);
 
         document.getElementById('agentContainer').addEventListener('click', function(e) {
@@ -898,6 +1028,7 @@
         // ============ INITIALIZE ============
         renderChatList();
         updateHeaderVisibility();
+        updateSendButton();
 
         const overlay = document.getElementById('loadingOverlay');
         overlay.classList.remove('hidden');
