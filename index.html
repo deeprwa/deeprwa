@@ -289,15 +289,73 @@
             position: relative;
             overflow: hidden;
             background: #343541;
+            display: flex;
+            flex-direction: column;
         }
+
         .agent-container iframe {
             width: 100%;
-            height: 100%;
+            flex: 1;
             border: none;
             background: #343541;
         }
 
-        /* Hide Taskade's entire input area */
+        /* Custom input wrapper - positioned at the bottom of the container */
+        .custom-input-wrapper {
+            position: relative;
+            z-index: 20;
+            padding: 12px 20px 20px 20px;
+            background: transparent;
+            flex-shrink: 0;
+        }
+
+        .custom-input-inner {
+            display: flex;
+            gap: 10px;
+            background: #40414f;
+            border-radius: 12px;
+            padding: 10px 16px;
+            border: 1px solid #5a5a5e;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .custom-input-inner input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ececf1;
+            font-size: 15px;
+            padding: 6px 4px;
+            outline: none;
+            font-family: inherit;
+            min-height: 30px;
+        }
+
+        .custom-input-inner input::placeholder {
+            color: #8e8e93;
+        }
+
+        .custom-input-inner button {
+            background: #1E88E5;
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+
+        .custom-input-inner button:hover {
+            background: #1565C0;
+        }
+
+        /* Hide Taskade input */
         .agent-container iframe {
             pointer-events: none;
         }
@@ -589,6 +647,7 @@
         </div>
         <div class="agent-container" id="agentContainer">
             <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
+            <!-- Custom input will be inserted here by JavaScript -->
         </div>
     </div>
 
@@ -936,108 +995,38 @@
         });
 
         // =============================================
-        // ===== CUSTOM CHAT INPUT (PERFECTLY POSITIONED) =====
+        // ===== CUSTOM CHAT INPUT =====
         // =============================================
-        // Wait for the iframe to load, then position the input
         function setupCustomInput() {
-            const container = document.querySelector('.agent-container');
+            const container = document.getElementById('agentContainer');
             if (!container) return;
 
-            // Remove existing input wrappers
-            const existingWrappers = container.querySelectorAll('.custom-input-wrapper');
-            existingWrappers.forEach(w => w.remove());
+            // Remove any existing custom input wrappers
+            const existing = container.querySelectorAll('.custom-input-wrapper');
+            existing.forEach(el => el.remove());
 
-            // Create the input wrapper - styled to match Taskade's input area
-            const inputWrapper = document.createElement('div');
-            inputWrapper.className = 'custom-input-wrapper';
-            inputWrapper.style.cssText = `
-                        position: absolute;
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
-                        z-index: 20;
-                        padding: 12px 20px 20px 20px;
-                        background: transparent;
-                    `;
+            // Create the wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-input-wrapper';
 
-            // Inner container with the same style as Taskade's input
-            const innerContainer = document.createElement('div');
-            innerContainer.style.cssText = `
-                        display: flex;
-                        gap: 10px;
-                        background: #40414f;
-                        border-radius: 12px;
-                        padding: 10px 16px;
-                        border: 1px solid #5a5a5e;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                        max-width: 100%;
-                        align-items: center;
-                    `;
+            const inner = document.createElement('div');
+            inner.className = 'custom-input-inner';
 
-            const inputField = document.createElement('input');
-            inputField.type = 'text';
-            inputField.placeholder = 'Ask me anything about Rwanda...';
-            inputField.style.cssText = `
-                        flex: 1;
-                        background: transparent;
-                        border: none;
-                        color: #ececf1;
-                        font-size: 15px;
-                        padding: 6px 4px;
-                        outline: none;
-                        font-family: inherit;
-                        min-height: 30px;
-                    `;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Ask me anything about Rwanda...';
 
-            const sendButton = document.createElement('button');
-            sendButton.textContent = 'Send';
-            sendButton.style.cssText = `
-                        background: #1E88E5;
-                        border: none;
-                        color: white;
-                        padding: 8px 20px;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        font-weight: 500;
-                        transition: background 0.2s;
-                        font-family: inherit;
-                        flex-shrink: 0;
-                    `;
-            sendButton.onmouseover = () => { sendButton.style.background = '#1565C0'; };
-            sendButton.onmouseout = () => { sendButton.style.background = '#1E88E5'; };
+            const button = document.createElement('button');
+            button.textContent = 'Send';
 
-            innerContainer.appendChild(inputField);
-            innerContainer.appendChild(sendButton);
-            inputWrapper.appendChild(innerContainer);
-            container.appendChild(inputWrapper);
+            inner.appendChild(input);
+            inner.appendChild(button);
+            wrapper.appendChild(inner);
+            container.appendChild(wrapper);
 
-            // Also hide Taskade's input with CSS
-            const style = document.createElement('style');
-            style.textContent = `
-                        /* Hide all input areas inside the iframe */
-                        .agent-container iframe {
-                            pointer-events: none;
-                        }
-                        .agent-container iframe [class*="input-area"],
-                        .agent-container iframe [class*="InputArea"],
-                        .agent-container iframe [class*="chat-input"],
-                        .agent-container iframe [class*="ChatInput"],
-                        .agent-container iframe [class*="message-input"],
-                        .agent-container iframe [class*="MessageInput"],
-                        .agent-container iframe footer,
-                        .agent-container iframe [class*="footer"] {
-                            display: none !important;
-                            opacity: 0 !important;
-                            height: 0 !important;
-                            overflow: hidden !important;
-                            pointer-events: none !important;
-                        }
-                    `;
-            document.head.appendChild(style);
-
+            // Function to send message
             function sendMessage() {
-                const message = inputField.value.trim();
+                const message = input.value.trim();
                 if (!message) return;
 
                 if (!currentChatId || !chats[currentChatId]) {
@@ -1059,31 +1048,23 @@
                 }
 
                 updateChatName(currentChatId, message);
-
-                // Send to iframe via postMessage
                 sendMessageToAgent(message);
 
-                // Also try to directly inject into iframe
+                // Try to send to iframe input
                 try {
                     const iframe = document.getElementById('agentFrame');
                     if (iframe && iframe.contentDocument) {
-                        // Find and fill the input
                         const inputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
-                        let found = false;
                         for (const inp of inputs) {
                             if (inp.placeholder && (inp.placeholder.toLowerCase().includes('ask') ||
-                                    inp.placeholder.toLowerCase().includes('message') ||
-                                    inp.placeholder.toLowerCase().includes('type'))) {
+                                    inp.placeholder.toLowerCase().includes('message'))) {
                                 inp.value = message;
                                 const event = new Event('input', { bubbles: true });
                                 inp.dispatchEvent(event);
-                                found = true;
-                                // Try to click send button
                                 const btns = iframe.contentDocument.querySelectorAll('button');
                                 for (const btn of btns) {
                                     const txt = btn.textContent.toLowerCase();
-                                    if (txt.includes('send') || txt.includes('submit') || txt.includes('ask') ||
-                                        btn.className && btn.className.includes('send')) {
+                                    if (txt.includes('send') || txt.includes('submit')) {
                                         btn.click();
                                         break;
                                     }
@@ -1091,52 +1072,29 @@
                                 break;
                             }
                         }
-                        // If no input found, try to find any input and fill it
-                        if (!found) {
-                            const anyInput = iframe.contentDocument.querySelector('input[type="text"], textarea');
-                            if (anyInput) {
-                                anyInput.value = message;
-                                const event = new Event('input', { bubbles: true });
-                                anyInput.dispatchEvent(event);
-                            }
-                        }
                     }
                 } catch (e) {}
 
-                inputField.value = '';
-                inputField.focus();
+                input.value = '';
+                input.focus();
             }
 
-            sendButton.addEventListener('click', sendMessage);
-            inputField.addEventListener('keydown', function(e) {
+            button.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     sendMessage();
                 }
             });
 
-            // Focus the input after a short delay
-            setTimeout(() => { inputField.focus(); }, 1500);
-
-            // Also focus when user clicks anywhere in the container
-            container.addEventListener('click', function(e) {
-                if (e.target.closest('.custom-input-wrapper')) return;
-                inputField.focus();
-            });
+            // Focus input
+            setTimeout(() => { input.focus(); }, 1000);
         }
 
-        // Set up the custom input when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            setupCustomInput();
-        });
-
-        // Also set up after iframe loads
-        document.getElementById('agentFrame').addEventListener('load', function() {
-            setupCustomInput();
-        });
-
-        // Set up after a delay
-        setTimeout(setupCustomInput, 3000);
+        // Set up custom input
+        document.addEventListener('DOMContentLoaded', setupCustomInput);
+        document.getElementById('agentFrame').addEventListener('load', setupCustomInput);
+        setTimeout(setupCustomInput, 2000);
 
         // ============ INITIALIZE ============
         renderChatList();
