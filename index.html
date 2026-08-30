@@ -21,7 +21,6 @@
             color: #ececf1;
         }
         
-        /* Sidebar */
         .sidebar {
             width: 260px;
             background: #202123;
@@ -43,13 +42,8 @@
             border: none;
         }
         
-        .sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #4a4a4d;
-            border-radius: 4px;
-        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #4a4a4d; border-radius: 4px; }
         
         .sidebar-header {
             display: flex;
@@ -134,13 +128,8 @@
             overflow-y: auto;
         }
         
-        .chat-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .chat-list::-webkit-scrollbar-thumb {
-            background: #4a4a4d;
-            border-radius: 4px;
-        }
+        .chat-list::-webkit-scrollbar { width: 4px; }
+        .chat-list::-webkit-scrollbar-thumb { background: #4a4a4d; border-radius: 4px; }
         
         .chat-item {
             padding: 8px 12px;
@@ -160,13 +149,8 @@
             position: relative;
         }
         
-        .chat-item:hover {
-            background: #2d2d30;
-        }
-        
-        .chat-item.active {
-            background: #2d2d30;
-        }
+        .chat-item:hover { background: #2d2d30; }
+        .chat-item.active { background: #2d2d30; }
         
         .chat-item .chat-name {
             flex: 1;
@@ -190,9 +174,7 @@
             transition: opacity 0.2s;
         }
         
-        .chat-item:hover .item-actions {
-            opacity: 1;
-        }
+        .chat-item:hover .item-actions { opacity: 1; }
         
         .chat-item .item-btn {
             background: none;
@@ -204,13 +186,8 @@
             transition: color 0.2s;
         }
         
-        .chat-item .item-btn:hover {
-            color: #ececf1;
-        }
-        
-        .chat-item .item-btn.delete:hover {
-            color: #e74c3c;
-        }
+        .chat-item .item-btn:hover { color: #ececf1; }
+        .chat-item .item-btn.delete:hover { color: #e74c3c; }
         
         .sidebar-footer {
             padding-top: 12px;
@@ -220,7 +197,6 @@
             text-align: center;
         }
         
-        /* Main Chat Area */
         .main-chat {
             flex: 1;
             display: flex;
@@ -240,10 +216,6 @@
             height: 60px;
         }
         
-        .main-header .header-title {
-            display: none;
-        }
-        
         .agent-container {
             flex: 1;
             position: relative;
@@ -258,7 +230,6 @@
             background: #343541;
         }
         
-        /* Loading overlay */
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -267,10 +238,12 @@
             bottom: 0;
             background: #343541;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 10;
-            transition: opacity 0.5s ease;
+            gap: 16px;
+            transition: opacity 0.3s ease;
         }
         
         .loading-overlay.hidden {
@@ -279,19 +252,23 @@
         }
         
         .loading-spinner {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border: 3px solid #2d2d30;
             border-top-color: #ececf1;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         
+        .loading-text {
+            color: #6e6e72;
+            font-size: 14px;
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -305,9 +282,7 @@
             justify-content: center;
         }
         
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
         
         .modal {
             background: #2d2d30;
@@ -350,63 +325,15 @@
             color: #ececf1;
         }
         
-        .modal-buttons .cancel-btn:hover {
-            background: #4a4a4d;
-        }
+        .modal-buttons .cancel-btn:hover { background: #4a4a4d; }
         
         .modal-buttons .confirm-btn {
             background: #e74c3c;
             color: white;
         }
         
-        .modal-buttons .confirm-btn:hover {
-            background: #c0392b;
-        }
+        .modal-buttons .confirm-btn:hover { background: #c0392b; }
         
-        .modal-buttons .share-btn {
-            background: #1E88E5;
-            color: white;
-        }
-        
-        .modal-buttons .share-btn:hover {
-            background: #1565C0;
-        }
-        
-        /* Share modal */
-        .share-link-container {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            background: #3d3d40;
-            border-radius: 6px;
-            padding: 4px;
-        }
-        
-        .share-link-container input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #ececf1;
-            padding: 8px 12px;
-            font-size: 13px;
-            outline: none;
-        }
-        
-        .share-link-container button {
-            background: #1E88E5;
-            border: none;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        
-        .share-link-container button:hover {
-            background: #1565C0;
-        }
-        
-        /* Mobile */
         .mobile-toggle {
             display: none;
             background: none;
@@ -428,9 +355,7 @@
             z-index: 999;
         }
         
-        .mobile-overlay.active {
-            display: block;
-        }
+        .mobile-overlay.active { display: block; }
         
         .mobile-sidebar {
             display: none;
@@ -468,16 +393,9 @@
         }
         
         @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-            .mobile-toggle {
-                display: flex;
-            }
-            .main-header {
-                padding: 10px 16px;
-                justify-content: space-between;
-            }
+            .sidebar { display: none; }
+            .mobile-toggle { display: flex; }
+            .main-header { padding: 10px 16px; justify-content: space-between; }
             .main-header .header-title {
                 display: block;
                 font-size: 16px;
@@ -491,6 +409,7 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
+        <div class="loading-text">Loading DeepRWA...</div>
     </div>
     
     <!-- Delete Modal -->
@@ -501,21 +420,6 @@
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeDeleteModal()">Cancel</button>
                 <button class="confirm-btn" onclick="confirmDelete()">Delete</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Share Modal -->
-    <div class="modal-overlay" id="shareModal">
-        <div class="modal">
-            <h3>Share this chat</h3>
-            <p>Copy the link below to share this conversation.</p>
-            <div class="share-link-container">
-                <input type="text" id="shareLinkInput" value="" readonly>
-                <button onclick="copyShareLink()">Copy</button>
-            </div>
-            <div class="modal-buttons">
-                <button class="cancel-btn" onclick="closeShareModal()">Close</button>
             </div>
         </div>
     </div>
@@ -548,7 +452,6 @@
             </div>
             <div class="sidebar-icons">
                 <button class="sidebar-icon" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
-                <button class="sidebar-icon" onclick="openSearch()" title="Search chats">🔍</button>
             </div>
         </div>
         <button class="new-chat-btn" onclick="createNewChat()">
@@ -575,13 +478,13 @@
         let isCreatingNewChat = false;
         let deleteTargetId = null;
         let isSidebarOpen = true;
-        let shareChatId = null;
+        let isLoading = true;
         
         // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
         
-        // If no chats exist, start with empty state
+        // If no chats exist, start empty
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -599,12 +502,12 @@
         function createNewChat() {
             if (isCreatingNewChat) return;
             
-            // If current chat is empty, just switch to it
+            // If there's a current chat and it's empty, don't create a new one
             if (currentChatId && isChatEmpty(currentChatId)) {
                 return;
             }
             
-            // Check for existing empty chat
+            // Check if there's already an empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -667,29 +570,6 @@
             closeDeleteModal();
         }
         
-        function openShareModal(id) {
-            shareChatId = id;
-            const chat = chats[id];
-            const url = window.location.href + '?chat=' + id;
-            document.getElementById('shareLinkInput').value = url;
-            document.getElementById('shareModal').classList.add('active');
-        }
-        
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.remove('active');
-            shareChatId = null;
-        }
-        
-        function copyShareLink() {
-            const input = document.getElementById('shareLinkInput');
-            input.select();
-            document.execCommand('copy');
-            const btn = input.nextElementSibling;
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => { btn.textContent = originalText; }, 2000);
-        }
-        
         function switchChat(id) {
             if (id === currentChatId) return;
             currentChatId = id;
@@ -749,45 +629,29 @@
             const frame = document.getElementById('agentFrame');
             frame.src = TASKADE_LINK + '?t=' + Date.now();
             
+            // Show loading overlay
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.remove('hidden');
+            isLoading = true;
             
             frame.onload = function() {
                 setTimeout(() => {
                     overlay.classList.add('hidden');
-                }, 500);
+                    isLoading = false;
+                }, 400);
             };
             
+            // Fallback: hide after 2.5 seconds
             setTimeout(() => {
                 overlay.classList.add('hidden');
-            }, 3000);
+                isLoading = false;
+            }, 2500);
         }
         
         function toggleSidebar() {
             const sidebar = document.getElementById('desktopSidebar');
             isSidebarOpen = !isSidebarOpen;
             sidebar.classList.toggle('closed', !isSidebarOpen);
-        }
-        
-        function openSearch() {
-            // Search functionality: filter chat list
-            const query = prompt('Search chats:');
-            if (query && query.trim()) {
-                const searchTerm = query.trim().toLowerCase();
-                const list = document.getElementById('chatList');
-                const items = list.querySelectorAll('.chat-item');
-                items.forEach(item => {
-                    const name = item.querySelector('.chat-name')?.textContent || '';
-                    if (name.toLowerCase().includes(searchTerm)) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-                setTimeout(() => {
-                    items.forEach(item => { item.style.display = 'flex'; });
-                }, 5000);
-            }
         }
         
         function openMobileSidebar() {
@@ -805,6 +669,23 @@
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === 'user_message' && data.message) {
+                    // If no chat exists, create one when user sends first message
+                    if (!currentChatId || !chats[currentChatId]) {
+                        const id = 'chat_' + Date.now();
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                        chats[id] = {
+                            id: id,
+                            name: 'New Chat',
+                            created: now.toISOString(),
+                            time: timeStr,
+                            messages: []
+                        };
+                        currentChatId = id;
+                        localStorage.setItem('deeprwa_current_chat', id);
+                        saveChats();
+                        renderChatList();
+                    }
                     updateChatName(currentChatId, data.message);
                 }
             } catch (e) {}
@@ -813,14 +694,21 @@
         // ============ INITIALIZE ============
         renderChatList();
         
-        // If there's no current chat, show the agent without any chat selected
-        if (!currentChatId) {
-            // Still load the agent but with no chat context
-        }
+        // Show loading overlay on initial load
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.classList.remove('hidden');
         
+        // Hide loading after page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 800);
+        });
+        
+        // Fallback: hide after 3 seconds
         setTimeout(() => {
-            document.getElementById('loadingOverlay').classList.add('hidden');
-        }, 1500);
+            overlay.classList.add('hidden');
+        }, 3000);
     </script>
 </body>
 </html>
