@@ -593,12 +593,13 @@
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
+        let hasDetectedFirstMessage = {};
 
         // ----- CHAT DATA -----
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
 
-        // FIX 4: No default chat - if no chats, start empty
+        // NO default chat
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -623,11 +624,9 @@
         }
 
         // ----- FIX 1: NEW CHAT BUTTON -----
-        // Creates a new chat ONLY IF current chat has messages (not empty)
         function createNewChat() {
             if (isCreatingNewChat) return;
 
-            // If there's no chat at all, create one
             if (!currentChatId || !chats[currentChatId]) {
                 const id = 'chat_' + Date.now();
                 const now = new Date();
@@ -649,7 +648,6 @@
                 return;
             }
 
-            // Check if there's already an empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -657,7 +655,7 @@
                 }
             }
 
-            // If current chat has messages, create a new one
+            // Only create new if current chat has messages
             if (!isChatEmpty(currentChatId)) {
                 isCreatingNewChat = true;
                 const id = 'chat_' + Date.now();
@@ -681,6 +679,7 @@
             }
         }
 
+        // ----- DELETE, SHARE, PIN -----
         function openDeleteModal(id) {
             deleteTargetId = id;
             document.getElementById('deleteModal').classList.add('active');
@@ -746,7 +745,7 @@
             closeMobileSidebar();
         }
 
-        // ----- FIX 2: CHAT NAME UPDATES TO USER'S FIRST MESSAGE -----
+        // ----- FIX 2: CHAT NAME UPDATE -----
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
@@ -760,14 +759,13 @@
             }
         }
 
-        // ----- FIX 3: DROPDOWN MENU (SHARE, PIN, DELETE) -----
+        // ----- FIX 3: DROPDOWN MENU -----
         function toggleDropdown(id, event) {
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
             }
 
-            // Close any open dropdown
             if (currentDropdownId && currentDropdownId !== id) {
                 const oldDropdown = document.getElementById('dropdown_' + currentDropdownId);
                 if (oldDropdown) oldDropdown.classList.remove('active');
@@ -875,15 +873,14 @@
             document.getElementById('mobileOverlay').classList.remove('active');
         }
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.more-btn') && !e.target.closest('.dropdown-menu')) {
                 closeDropdown();
             }
         });
 
-        // ----- MESSAGE LISTENER -----
-        // Detects when a user sends a message in the iframe
+        // ----- FIX 2 & 4: DETECT USER MESSAGES -----
+        // Method 1: Try to catch iframe messages
         window.addEventListener('message', function(event) {
             try {
                 let data;
@@ -901,7 +898,6 @@
                     const userMessage = data.message.trim();
                     if (!userMessage) return;
 
-                    // If no chat exists, create one
                     if (!currentChatId || !chats[currentChatId]) {
                         const id = 'chat_' + Date.now();
                         const now = new Date();
@@ -920,13 +916,81 @@
                         renderChatList();
                     }
 
-                    // Update chat name with the first message
                     updateChatName(currentChatId, userMessage);
                 }
-            } catch (e) {
-                // Ignore errors
-            }
+            } catch (e) {}
         });
+
+        // Method 2: Use MutationObserver to detect when the iframe content changes
+        // This detects when the user sends a message in the Taskade agent
+        let messageDetectorInterval = null;
+
+        function startMessageDetection() {
+            if (messageDetectorInterval) return;
+
+            messageDetectorInterval = setInterval(function() {
+                try {
+                    const iframe = document.getElementById('agentFrame');
+                    if (!iframe) return;
+
+                    // Try to access iframe content
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                        if (!iframeDoc) return;
+
+                        // Look for user messages in the iframe
+                        // Taskade's interface has specific elements for messages
+                        const messages = iframeDoc.querySelectorAll('[class*="message"], [class*="Message"], [data-testid*="message"]');
+                        if (messages.length > 0) {
+                            // Get the last message
+                            const lastMessage = messages[messages.length - 1];
+                            if (lastMessage) {
+                                const messageText = lastMessage.textContent || lastMessage.innerText || '';
+                                if (messageText && messageText.length > 0 && messageText !== '...') {
+                                    // Check if this is a user message (usually right-aligned)
+                                    const isUser = lastMessage.closest('[class*="user"], [data-testid*="user"]');
+                                    if (isUser && messageText.length > 2) {
+                                        const chatId = currentChatId;
+                                        if (chatId && chats[chatId] && chats[chatId].name === 'New Chat') {
+                                            updateChatName(chatId, messageText);
+                                        }
+                                        // Also create chat if none exists
+                                        if (!currentChatId || !chats[currentChatId]) {
+                                            const id = 'chat_' + Date.now();
+                                            const now = new Date();
+                                            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                            chats[id] = {
+                                                id: id,
+                                                name: 'New Chat',
+                                                created: now.toISOString(),
+                                                time: timeStr,
+                                                messages: [],
+                                                pinned: false
+                                            };
+                                            currentChatId = id;
+                                            localStorage.setItem('deeprwa_current_chat', id);
+                                            saveChats();
+                                            renderChatList();
+                                            updateChatName(id, messageText);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Cross-origin iframe access may fail
+                    }
+                } catch (e) {}
+            }, 3000);
+        }
+
+        // Start detection after iframe loads
+        document.getElementById('agentFrame').addEventListener('load', function() {
+            startMessageDetection();
+        });
+
+        // Also start after a delay
+        setTimeout(startMessageDetection, 5000);
 
         // ============ INITIALIZE ============
         renderChatList();
