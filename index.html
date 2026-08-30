@@ -281,7 +281,6 @@
             color: #ececf1;
         }
 
-        /* Show header elements only when sidebar is closed */
         .main-header.has-logo .menu-btn {
             display: flex;
         }
@@ -600,6 +599,7 @@
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
+        let messageListenerActive = false;
 
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
@@ -630,8 +630,8 @@
 
         function createNewChat() {
             if (isCreatingNewChat) return;
-            if (currentChatId && isChatEmpty(currentChatId)) return;
 
+            // Check if there's already an empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -731,7 +731,10 @@
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
                 chats[id].name = name;
-                chats[id].messages = chats[id].messages || [];
+                // Store the message so we know this chat has content
+                if (!chats[id].messages) {
+                    chats[id].messages = [];
+                }
                 chats[id].messages.push({ role: 'user', content: firstMessage });
                 saveChats();
                 renderChatList();
@@ -842,14 +845,34 @@
             document.getElementById('mobileOverlay').classList.remove('active');
         }
 
+        // Close dropdown when clicking outside
         document.addEventListener('click', function() {
             closeDropdown();
         });
 
+        // ============ MESSAGE LISTENER ============
+        // Listen for messages from the iframe
         window.addEventListener('message', function(event) {
             try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'user_message' && data.message) {
+                // Try to parse the data as JSON
+                let data;
+                if (typeof event.data === 'string') {
+                    try {
+                        data = JSON.parse(event.data);
+                    } catch (e) {
+                        // Not JSON, ignore
+                        return;
+                    }
+                } else {
+                    data = event.data;
+                }
+
+                // Check if this is a user message
+                if (data && data.type === 'user_message' && data.message) {
+                    const userMessage = data.message.trim();
+                    if (!userMessage) return;
+
+                    // If no chat exists, create one
                     if (!currentChatId || !chats[currentChatId]) {
                         const id = 'chat_' + Date.now();
                         const now = new Date();
@@ -867,9 +890,13 @@
                         saveChats();
                         renderChatList();
                     }
-                    updateChatName(currentChatId, data.message);
+
+                    // Update chat name with the user's first message
+                    updateChatName(currentChatId, userMessage);
                 }
-            } catch (e) {}
+            } catch (e) {
+                // Ignore any errors
+            }
         });
 
         // ============ INITIALIZE ============
