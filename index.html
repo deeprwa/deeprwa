@@ -242,89 +242,6 @@
             height: 100%;
             border: none;
             background: #343541;
-            pointer-events: none;
-        }
-
-        /* ===== CUSTOM INPUT - PERFECT CLONE ===== */
-        .custom-input-wrapper {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 30;
-            padding: 12px 20px 16px 20px;
-            background: #343541;
-            pointer-events: none;
-        }
-
-        .custom-input-inner {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #40414f;
-            border-radius: 12px;
-            padding: 8px 12px;
-            border: 1px solid #5a5a5e;
-            pointer-events: auto;
-            transition: border-color 0.2s;
-            max-width: 100%;
-        }
-
-        .custom-input-inner:focus-within {
-            border-color: #1E88E5;
-        }
-
-        .custom-input-inner input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #ececf1;
-            font-size: 15px;
-            padding: 8px 4px;
-            outline: none;
-            font-family: inherit;
-            min-height: 32px;
-        }
-
-        .custom-input-inner input::placeholder {
-            color: #8e8e93;
-        }
-
-        .custom-input-inner .send-btn {
-            background: #3d3d40;
-            border: none;
-            color: #a0a0a5;
-            padding: 6px 18px;
-            border-radius: 8px;
-            cursor: default;
-            font-size: 14px;
-            font-weight: 500;
-            font-family: inherit;
-            flex-shrink: 0;
-            line-height: 1.4;
-            transition: all 0.2s;
-            min-width: 56px;
-            text-align: center;
-        }
-
-        .custom-input-inner .send-btn.active {
-            background: #1E88E5;
-            color: white;
-            cursor: pointer;
-        }
-
-        .custom-input-inner .send-btn.active:hover {
-            background: #1565C0;
-        }
-
-        .custom-input-inner .send-btn.sending {
-            background: #e74c3c;
-            color: white;
-            cursor: pointer;
-        }
-
-        .custom-input-inner .send-btn.sending:hover {
-            background: #c0392b;
         }
 
         .loading-overlay {
@@ -383,14 +300,6 @@
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-        }
-        .modal-buttons button {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
         }
         .modal-buttons .cancel-btn { background: #3d3d40; color: #ececf1; }
         .modal-buttons .cancel-btn:hover { background: #4a4a4d; }
@@ -476,12 +385,6 @@
             .main-header .header-logo img { width: 24px; height: 24px; }
             .main-header.has-logo .menu-btn { display: flex; }
             .main-header.has-logo .header-logo { display: flex; }
-            .custom-input-wrapper {
-                padding: 8px 12px 12px 12px;
-            }
-            .custom-input-inner {
-                padding: 6px 10px;
-            }
         }
     </style>
 </head>
@@ -560,14 +463,6 @@
         </div>
         <div class="agent-container" id="agentContainer">
             <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
-
-            <!-- CUSTOM INPUT - PERFECT CLONE -->
-            <div class="custom-input-wrapper" id="customInputWrapper">
-                <div class="custom-input-inner">
-                    <input type="text" id="customInput" placeholder="Ask me anything about Rwanda..." autofocus>
-                    <button class="send-btn" id="sendBtn">Send</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -577,12 +472,12 @@
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
-        let isSending = false;
 
+        // ===== CHAT DATA =====
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
 
-        // NO DEFAULT CHAT - empty state on first visit
+        // FIX 4: NO DEFAULT CHAT - empty state on first visit
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -602,33 +497,11 @@
             header.classList.toggle('has-logo', !isSidebarOpen);
         }
 
-        function createChatFromMessage(message) {
-            if (!message || !message.trim()) return;
-
-            if (!currentChatId || !chats[currentChatId]) {
-                const id = 'chat_' + Date.now();
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                chats[id] = {
-                    id: id,
-                    name: 'New Chat',
-                    created: now.toISOString(),
-                    time: timeStr,
-                    messages: [],
-                    pinned: false
-                };
-                currentChatId = id;
-                localStorage.setItem('deeprwa_current_chat', id);
-                saveChats();
-                renderChatList();
-                return true;
-            }
-            return false;
-        }
-
+        // ===== FIX 1: NEW CHAT BUTTON - ONLY IF CURRENT CHAT HAS MESSAGES =====
         function createNewChat() {
             if (isCreatingNewChat) return;
 
+            // If no chat exists, create one
             if (!currentChatId || !chats[currentChatId]) {
                 const id = 'chat_' + Date.now();
                 const now = new Date();
@@ -650,6 +523,7 @@
                 return;
             }
 
+            // Check if there's already an empty chat
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
@@ -657,6 +531,7 @@
                 }
             }
 
+            // ONLY create new if current chat has messages (NOT empty)
             if (!isChatEmpty(currentChatId)) {
                 isCreatingNewChat = true;
                 const id = 'chat_' + Date.now();
@@ -680,6 +555,7 @@
             }
         }
 
+        // ===== DELETE, SHARE, PIN =====
         function openDeleteModal(id) {
             if (Object.keys(chats).length <= 1) return;
             deleteTargetId = id;
@@ -746,6 +622,7 @@
             closeMobileSidebar();
         }
 
+        // ===== FIX 2: CHAT NAME UPDATES TO USER'S FIRST MESSAGE =====
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
@@ -757,21 +634,14 @@
             }
         }
 
-        function sendMessageToAgent(message) {
-            try {
-                const iframe = document.getElementById('agentFrame');
-                if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({ type: 'user_message', message: message }, '*');
-                }
-            } catch (e) {}
-        }
-
+        // ===== FIX 3: DROPDOWN MENU =====
         function toggleDropdown(id, event) {
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
             }
 
+            // Close any open dropdown
             if (currentDropdownId && currentDropdownId !== id) {
                 const old = document.getElementById('dropdown_' + currentDropdownId);
                 if (old) old.classList.remove('active');
@@ -809,6 +679,7 @@
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
 
+            // FIX 4: Empty state - "No chats yet."
             if (keys.length === 0) {
                 const msg = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.</div>';
                 list.innerHTML = msg;
@@ -879,6 +750,8 @@
             }
         });
 
+        // ===== MESSAGE LISTENER =====
+        // This listens for messages from the iframe
         window.addEventListener('message', function(event) {
             try {
                 let data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
@@ -886,6 +759,7 @@
                     const msg = data.message.trim();
                     if (!msg) return;
 
+                    // If no chat exists, create one from the message
                     if (!currentChatId || !chats[currentChatId]) {
                         const id = 'chat_' + Date.now();
                         const now = new Date();
@@ -904,118 +778,15 @@
                         renderChatList();
                     }
 
+                    // Update chat name with the first message
                     updateChatName(currentChatId, msg);
                 }
             } catch (e) {}
         });
 
-        // ===== CUSTOM INPUT =====
-        const customInput = document.getElementById('customInput');
-        const sendBtn = document.getElementById('sendBtn');
-
-        function updateSendButton() {
-            const hasText = customInput.value.trim().length > 0;
-            if (isSending) {
-                sendBtn.textContent = 'Stop';
-                sendBtn.className = 'send-btn sending';
-                return;
-            }
-            if (hasText) {
-                sendBtn.textContent = 'Send';
-                sendBtn.className = 'send-btn active';
-            } else {
-                sendBtn.textContent = 'Send';
-                sendBtn.className = 'send-btn';
-            }
-        }
-
-        function sendMessage() {
-            const message = customInput.value.trim();
-            if (!message || isSending) return;
-
-            if (!currentChatId || !chats[currentChatId]) {
-                createChatFromMessage(message);
-            }
-
-            updateChatName(currentChatId, message);
-
-            isSending = true;
-            updateSendButton();
-
-            sendMessageToAgent(message);
-
-            try {
-                const iframe = document.getElementById('agentFrame');
-                if (iframe && iframe.contentDocument) {
-                    const inputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
-                    for (const inp of inputs) {
-                        if (inp.placeholder && (inp.placeholder.toLowerCase().includes('ask') ||
-                                inp.placeholder.toLowerCase().includes('message'))) {
-                            inp.value = message;
-                            inp.dispatchEvent(new Event('input', { bubbles: true }));
-                            const btns = iframe.contentDocument.querySelectorAll('button');
-                            for (const btn of btns) {
-                                if (btn.textContent.toLowerCase().includes('send')) {
-                                    btn.click();
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-            } catch (e) {}
-
-            setTimeout(() => {
-                isSending = false;
-                customInput.value = '';
-                updateSendButton();
-                customInput.focus();
-            }, 1500);
-        }
-
-        function stopSending() {
-            if (isSending) {
-                isSending = false;
-                sendBtn.textContent = 'Send';
-                sendBtn.className = 'send-btn';
-                customInput.focus();
-            }
-        }
-
-        customInput.addEventListener('input', updateSendButton);
-
-        sendBtn.addEventListener('click', function() {
-            if (isSending) {
-                stopSending();
-            } else {
-                sendMessage();
-            }
-        });
-
-        customInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (isSending) {
-                    stopSending();
-                } else {
-                    sendMessage();
-                }
-            }
-        });
-
-        setTimeout(() => customInput.focus(), 1500);
-
-        document.getElementById('agentContainer').addEventListener('click', function(e) {
-            if (!e.target.closest('.custom-input-inner')) {
-                customInput.focus();
-            }
-        });
-
         // ============ INITIALIZE ============
         renderChatList();
         updateHeaderVisibility();
-        updateSendButton();
 
         const overlay = document.getElementById('loadingOverlay');
         overlay.classList.remove('hidden');
