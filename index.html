@@ -32,6 +32,16 @@
             height: 100vh;
             overflow-y: auto;
             border-right: 1px solid #2d2d30;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.closed {
+            transform: translateX(-100%);
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+            border: none;
         }
         
         .sidebar::-webkit-scrollbar {
@@ -42,13 +52,19 @@
             border-radius: 4px;
         }
         
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 4px 14px 4px;
+            border-bottom: 1px solid #2d2d30;
+            margin-bottom: 10px;
+        }
+        
         .sidebar-logo {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 4px 14px 4px;
-            border-bottom: 1px solid #2d2d30;
-            margin-bottom: 10px;
         }
         
         .sidebar-logo img {
@@ -60,6 +76,20 @@
         .sidebar-logo span {
             font-size: 16px;
             font-weight: 600;
+            color: #ececf1;
+        }
+        
+        .sidebar-close-btn {
+            background: none;
+            border: none;
+            color: #6e6e72;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+        
+        .sidebar-close-btn:hover {
             color: #ececf1;
         }
         
@@ -192,10 +222,31 @@
             background: #343541;
         }
         
-        .main-header img {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+        .main-header .menu-btn {
+            background: none;
+            border: none;
+            color: #ececf1;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px 8px;
+        }
+        
+        .main-header .menu-btn:hover {
+            color: #a0a0a5;
+        }
+        
+        .main-header .search-btn {
+            background: none;
+            border: none;
+            color: #ececf1;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            margin-left: auto;
+        }
+        
+        .main-header .search-btn:hover {
+            color: #a0a0a5;
         }
         
         .main-header h1 {
@@ -329,17 +380,63 @@
             background: #c0392b;
         }
         
-        /* Mobile */
-        .mobile-toggle {
+        /* Search Popup */
+        .search-popup {
             display: none;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #ececf1;
-            padding: 4px 8px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d2d30;
+            border-radius: 8px;
+            padding: 24px;
+            width: 400px;
+            max-width: 90%;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         }
         
+        .search-popup.active {
+            display: block;
+        }
+        
+        .search-popup input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #3d3d40;
+            border: 1px solid #4a4a4d;
+            border-radius: 6px;
+            color: #ececf1;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .search-popup input:focus {
+            border-color: #5a5a5e;
+        }
+        
+        .search-popup .close-search {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #6e6e72;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .search-popup .close-search:hover {
+            color: #ececf1;
+        }
+        
+        .search-popup p {
+            color: #6e6e72;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        /* Mobile */
         .mobile-overlay {
             display: none;
             position: fixed;
@@ -394,9 +491,6 @@
             .sidebar {
                 display: none;
             }
-            .mobile-toggle {
-                display: flex;
-            }
             .main-header {
                 padding: 10px 16px;
             }
@@ -424,6 +518,13 @@
         </div>
     </div>
     
+    <!-- Search Popup -->
+    <div class="search-popup" id="searchPopup">
+        <button class="close-search" onclick="closeSearch()">✕</button>
+        <input type="text" id="searchInput" placeholder="Search Rwanda information...">
+        <p>Press Enter to search</p>
+    </div>
+    
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
     
@@ -445,9 +546,12 @@
     
     <!-- Desktop Sidebar -->
     <div class="sidebar" id="desktopSidebar">
-        <div class="sidebar-logo">
-            <img src="av.png" alt="DeepRWA">
-            <span>DeepRWA</span>
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="av.png" alt="DeepRWA">
+                <span>DeepRWA</span>
+            </div>
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" title="Close sidebar">✕</button>
         </div>
         <button class="new-chat-btn" onclick="createNewChat()">
             <span>+</span> New Chat
@@ -459,10 +563,10 @@
     <!-- Main Chat Area -->
     <div class="main-chat">
         <div class="main-header">
-            <button class="mobile-toggle" onclick="openMobileSidebar()">☰</button>
-            <img src="av.png" alt="DeepRWA">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
             <h1>DeepRWA</h1>
             <p>Your AI assistant for Rwanda</p>
+            <button class="search-btn" onclick="openSearch()">🔍</button>
         </div>
         <div class="agent-container" id="agentContainer">
             <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
@@ -472,36 +576,62 @@
     <script>
         // ============ CONFIGURATION ============
         const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
-        let chatCounter = 0;
         let isCreatingNewChat = false;
         let deleteTargetId = null;
+        let isSidebarOpen = true;
         
         // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
         
+        // If no chats exist, create a default one
+        if (Object.keys(chats).length === 0) {
+            const id = 'chat_' + Date.now();
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            chats[id] = {
+                id: id,
+                name: 'New Chat',
+                created: now.toISOString(),
+                time: timeStr,
+                messages: []
+            };
+            currentChatId = id;
+            localStorage.setItem('deeprwa_current_chat', id);
+            saveChats();
+        }
+        
         function saveChats() {
             localStorage.setItem('deeprwa_chats', JSON.stringify(chats));
+        }
+        
+        function isChatEmpty(chatId) {
+            const chat = chats[chatId];
+            return chat && (!chat.messages || chat.messages.length === 0);
         }
         
         function createNewChat() {
             // Prevent multiple empty chats
             if (isCreatingNewChat) return;
-            isCreatingNewChat = true;
+            
+            // Check if current chat is empty - if so, don't create a new one
+            if (currentChatId && isChatEmpty(currentChatId)) {
+                return;
+            }
             
             // Check if there's already an empty chat
             for (const key in chats) {
-                if (chats[key].name === 'New Chat' && chats[key].messages === undefined) {
+                if (isChatEmpty(key)) {
                     switchChat(key);
-                    isCreatingNewChat = false;
                     return;
                 }
             }
             
+            isCreatingNewChat = true;
+            
             const id = 'chat_' + Date.now();
             const now = new Date();
             const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-            chatCounter++;
             
             chats[id] = {
                 id: id,
@@ -524,6 +654,10 @@
         }
         
         function openDeleteModal(id) {
+            // Prevent deleting if there's only one chat
+            if (Object.keys(chats).length <= 1) {
+                return;
+            }
             deleteTargetId = id;
             document.getElementById('modalOverlay').classList.add('active');
         }
@@ -563,6 +697,8 @@
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
                 chats[id].name = name;
+                chats[id].messages = chats[id].messages || [];
+                chats[id].messages.push({ role: 'user', content: firstMessage });
                 saveChats();
                 renderChatList();
             }
@@ -579,22 +715,19 @@
             });
             
             let html = '';
-            if (keys.length === 0) {
-                html = '<div style="color:#6e6e72;padding:12px;text-align:center;font-size:13px;">No chats yet</div>';
-            } else {
-                for (const key of keys) {
-                    const chat = chats[key];
-                    const isActive = key === currentChatId;
-                    const timeStr = chat.time || '--:--';
-                    const name = chat.name || 'New Chat';
-                    html += `
-                        <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
-                            <span class="chat-name">💬 ${name}</span>
-                            <span class="time">${timeStr}</span>
-                            <button class="delete-btn" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>
-                        </div>
-                    `;
-                }
+            for (const key of keys) {
+                const chat = chats[key];
+                const isActive = key === currentChatId;
+                const timeStr = chat.time || '--:--';
+                const name = chat.name || 'New Chat';
+                const isDeletable = keys.length > 1;
+                html += `
+                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
+                        <span class="chat-name">💬 ${name}</span>
+                        <span class="time">${timeStr}</span>
+                        ${isDeletable ? `<button class="delete-btn" onclick="event.stopPropagation();openDeleteModal('${key}')">✕</button>` : ''}
+                    </div>
+                `;
             }
             
             list.innerHTML = html;
@@ -603,24 +736,40 @@
         
         function updateAgent() {
             const frame = document.getElementById('agentFrame');
-            // Reload with timestamp to avoid cache
             frame.src = TASKADE_LINK + '?t=' + Date.now();
             
-            // Show loading overlay
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.remove('hidden');
             
-            // Hide loading after iframe loads
             frame.onload = function() {
                 setTimeout(() => {
                     overlay.classList.add('hidden');
                 }, 500);
             };
             
-            // Fallback: hide after 3 seconds even if iframe doesn't load
             setTimeout(() => {
                 overlay.classList.add('hidden');
             }, 3000);
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('desktopSidebar');
+            isSidebarOpen = !isSidebarOpen;
+            if (isSidebarOpen) {
+                sidebar.classList.remove('closed');
+            } else {
+                sidebar.classList.add('closed');
+            }
+        }
+        
+        function openSearch() {
+            document.getElementById('searchPopup').classList.add('active');
+            document.getElementById('searchInput').focus();
+        }
+        
+        function closeSearch() {
+            document.getElementById('searchPopup').classList.remove('active');
+            document.getElementById('searchInput').value = '';
         }
         
         function openMobileSidebar() {
@@ -633,34 +782,35 @@
             document.getElementById('mobileOverlay').classList.remove('active');
         }
         
-        // Listen for messages from the iframe to detect user input
+        // Handle search input
+        document.getElementById('searchInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    // Send the search query to the iframe
+                    const frame = document.getElementById('agentFrame');
+                    frame.contentWindow.postMessage({
+                        type: 'search',
+                        query: query
+                    }, '*');
+                    closeSearch();
+                }
+            }
+        });
+        
+        // Listen for messages from the iframe
         window.addEventListener('message', function(event) {
-            // This will capture when a user sends a message in the Taskade agent
-            // The iframe sends messages that we can intercept
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === 'user_message' && data.message) {
                     updateChatName(currentChatId, data.message);
                 }
-            } catch (e) {
-                // Not a JSON message, ignore
-            }
+            } catch (e) {}
         });
         
         // ============ INITIALIZE ============
-        if (!currentChatId || !chats[currentChatId]) {
-            const keys = Object.keys(chats);
-            if (keys.length > 0) {
-                currentChatId = keys[0];
-            } else {
-                createNewChat();
-            }
-            localStorage.setItem('deeprwa_current_chat', currentChatId);
-        }
-        
         renderChatList();
         
-        // Hide loading overlay after initial load
         setTimeout(() => {
             document.getElementById('loadingOverlay').classList.add('hidden');
         }, 1500);
