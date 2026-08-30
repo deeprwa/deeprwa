@@ -593,13 +593,11 @@
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
-        let hasDetectedFirstMessage = {};
 
         // ----- CHAT DATA -----
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
 
-        // NO default chat
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -623,7 +621,7 @@
             }
         }
 
-        // ----- FIX 1: NEW CHAT BUTTON -----
+        // ----- NEW CHAT -----
         function createNewChat() {
             if (isCreatingNewChat) return;
 
@@ -655,7 +653,6 @@
                 }
             }
 
-            // Only create new if current chat has messages
             if (!isChatEmpty(currentChatId)) {
                 isCreatingNewChat = true;
                 const id = 'chat_' + Date.now();
@@ -745,7 +742,8 @@
             closeMobileSidebar();
         }
 
-        // ----- FIX 2: CHAT NAME UPDATE -----
+        // ----- CHAT NAME UPDATE -----
+        // This function is called when user sends a message via our custom input
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
@@ -759,7 +757,52 @@
             }
         }
 
-        // ----- FIX 3: DROPDOWN MENU -----
+        // ----- SEND MESSAGE TO IFRAME -----
+        function sendMessageToAgent(message) {
+            try {
+                const iframe = document.getElementById('agentFrame');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        type: 'user_message',
+                        message: message
+                    }, '*');
+                }
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        // ----- CREATE CHAT FROM USER INPUT -----
+        function createChatFromMessage(message) {
+            if (!message || !message.trim()) return;
+
+            // If no chat exists, create one
+            if (!currentChatId || !chats[currentChatId]) {
+                const id = 'chat_' + Date.now();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
+                currentChatId = id;
+                localStorage.setItem('deeprwa_current_chat', id);
+                saveChats();
+                renderChatList();
+            }
+
+            // Update chat name
+            updateChatName(currentChatId, message.trim());
+
+            // Send message to agent
+            sendMessageToAgent(message);
+        }
+
+        // ----- DROPDOWN MENU -----
         function toggleDropdown(id, event) {
             if (event) {
                 event.stopPropagation();
@@ -879,8 +922,7 @@
             }
         });
 
-        // ----- FIX 2 & 4: DETECT USER MESSAGES -----
-        // Method 1: Try to catch iframe messages
+        // ----- LISTEN FOR MESSAGES FROM IFRAME -----
         window.addEventListener('message', function(event) {
             try {
                 let data;
@@ -921,76 +963,148 @@
             } catch (e) {}
         });
 
-        // Method 2: Use MutationObserver to detect when the iframe content changes
-        // This detects when the user sends a message in the Taskade agent
-        let messageDetectorInterval = null;
+        // =============================================
+        // ===== CUSTOM CHAT INPUT =====
+        // =============================================
+        // We'll create a custom chat input that sends messages to the iframe
+        // This bypasses the iframe's own input and gives us full control
 
-        function startMessageDetection() {
-            if (messageDetectorInterval) return;
+        // Create a floating input box at the bottom
+        const chatContainer = document.querySelector('.agent-container');
+        if (chatContainer) {
+            // Create input wrapper
+            const inputWrapper = document.createElement('div');
+            inputWrapper.style.cssText = `
+                        position: absolute;
+                        bottom: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 90%;
+                        max-width: 700px;
+                        z-index: 20;
+                        display: flex;
+                        gap: 10px;
+                        background: #3d3d40;
+                        border-radius: 12px;
+                        padding: 8px 12px;
+                        border: 1px solid #4a4a4d;
+                        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+                    `;
 
-            messageDetectorInterval = setInterval(function() {
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.placeholder = 'Ask me anything about Rwanda...';
+            inputField.style.cssText = `
+                        flex: 1;
+                        background: transparent;
+                        border: none;
+                        color: #ececf1;
+                        font-size: 15px;
+                        padding: 8px 4px;
+                        outline: none;
+                        font-family: inherit;
+                    `;
+
+            const sendButton = document.createElement('button');
+            sendButton.textContent = 'Send';
+            sendButton.style.cssText = `
+                        background: #1E88E5;
+                        border: none;
+                        color: white;
+                        padding: 8px 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 500;
+                        transition: background 0.2s;
+                        font-family: inherit;
+                    `;
+            sendButton.onmouseover = () => { sendButton.style.background = '#1565C0'; };
+            sendButton.onmouseout = () => { sendButton.style.background = '#1E88E5'; };
+
+            inputWrapper.appendChild(inputField);
+            inputWrapper.appendChild(sendButton);
+            chatContainer.appendChild(inputWrapper);
+
+            // Send message function
+            function sendMessage() {
+                const message = inputField.value.trim();
+                if (!message) return;
+
+                // Create chat and update name
+                if (!currentChatId || !chats[currentChatId]) {
+                    const id = 'chat_' + Date.now();
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    chats[id] = {
+                        id: id,
+                        name: 'New Chat',
+                        created: now.toISOString(),
+                        time: timeStr,
+                        messages: [],
+                        pinned: false
+                    };
+                    currentChatId = id;
+                    localStorage.setItem('deeprwa_current_chat', id);
+                    saveChats();
+                    renderChatList();
+                }
+
+                updateChatName(currentChatId, message);
+
+                // Send to iframe
                 try {
                     const iframe = document.getElementById('agentFrame');
-                    if (!iframe) return;
-
-                    // Try to access iframe content
-                    try {
-                        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                        if (!iframeDoc) return;
-
-                        // Look for user messages in the iframe
-                        // Taskade's interface has specific elements for messages
-                        const messages = iframeDoc.querySelectorAll('[class*="message"], [class*="Message"], [data-testid*="message"]');
-                        if (messages.length > 0) {
-                            // Get the last message
-                            const lastMessage = messages[messages.length - 1];
-                            if (lastMessage) {
-                                const messageText = lastMessage.textContent || lastMessage.innerText || '';
-                                if (messageText && messageText.length > 0 && messageText !== '...') {
-                                    // Check if this is a user message (usually right-aligned)
-                                    const isUser = lastMessage.closest('[class*="user"], [data-testid*="user"]');
-                                    if (isUser && messageText.length > 2) {
-                                        const chatId = currentChatId;
-                                        if (chatId && chats[chatId] && chats[chatId].name === 'New Chat') {
-                                            updateChatName(chatId, messageText);
-                                        }
-                                        // Also create chat if none exists
-                                        if (!currentChatId || !chats[currentChatId]) {
-                                            const id = 'chat_' + Date.now();
-                                            const now = new Date();
-                                            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                            chats[id] = {
-                                                id: id,
-                                                name: 'New Chat',
-                                                created: now.toISOString(),
-                                                time: timeStr,
-                                                messages: [],
-                                                pinned: false
-                                            };
-                                            currentChatId = id;
-                                            localStorage.setItem('deeprwa_current_chat', id);
-                                            saveChats();
-                                            renderChatList();
-                                            updateChatName(id, messageText);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        // Cross-origin iframe access may fail
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({
+                            type: 'user_message',
+                            message: message
+                        }, '*');
                     }
                 } catch (e) {}
-            }, 3000);
+
+                // Also try to find the iframe's input and fill it
+                try {
+                    const iframe = document.getElementById('agentFrame');
+                    if (iframe && iframe.contentDocument) {
+                        const iframeInputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
+                        for (const inp of iframeInputs) {
+                            if (inp.placeholder && inp.placeholder.toLowerCase().includes('ask')) {
+                                inp.value = message;
+                                // Trigger input event
+                                const event = new Event('input', { bubbles: true });
+                                inp.dispatchEvent(event);
+                                // Find and click send button
+                                const btns = iframe.contentDocument.querySelectorAll('button');
+                                for (const btn of btns) {
+                                    if (btn.textContent.toLowerCase().includes('send') ||
+                                        btn.textContent.toLowerCase().includes('submit') ||
+                                        btn.textContent.toLowerCase().includes('ask')) {
+                                        btn.click();
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (e) {}
+
+                inputField.value = '';
+            }
+
+            // Events
+            sendButton.addEventListener('click', sendMessage);
+            inputField.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Focus the input on load
+            setTimeout(() => { inputField.focus(); }, 1000);
         }
-
-        // Start detection after iframe loads
-        document.getElementById('agentFrame').addEventListener('load', function() {
-            startMessageDetection();
-        });
-
-        // Also start after a delay
-        setTimeout(startMessageDetection, 5000);
 
         // ============ INITIALIZE ============
         renderChatList();
