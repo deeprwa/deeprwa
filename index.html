@@ -6,8 +6,12 @@
     <title>DeepRWA</title>
     <link rel="icon" href="av.png" type="image/png">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #343541;
@@ -16,7 +20,7 @@
             display: flex;
             color: #ececf1;
         }
-        
+
         /* ====== SIDEBAR ====== */
         .sidebar {
             width: 260px;
@@ -28,9 +32,10 @@
             height: 100vh;
             overflow-y: auto;
             border-right: 1px solid #2d2d30;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, width 0.3s ease;
             z-index: 10;
         }
+
         .sidebar.closed {
             transform: translateX(-100%);
             width: 0;
@@ -38,9 +43,15 @@
             overflow: hidden;
             border: none;
         }
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background: #4a4a4d; border-radius: 4px; }
-        
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #4a4a4d;
+            border-radius: 4px;
+        }
+
         .sidebar-header {
             display: flex;
             align-items: center;
@@ -49,15 +60,23 @@
             border-bottom: 1px solid #2d2d30;
             margin-bottom: 10px;
         }
-        
+
         .sidebar-logo {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .sidebar-logo img { width: 28px; height: 28px; border-radius: 50%; }
-        .sidebar-logo span { font-size: 16px; font-weight: 600; color: #ececf1; }
-        
+        .sidebar-logo img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+        .sidebar-logo span {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ececf1;
+        }
+
         .sidebar-icon {
             background: none;
             border: none;
@@ -68,8 +87,11 @@
             transition: color 0.2s;
             border-radius: 4px;
         }
-        .sidebar-icon:hover { color: #ececf1; background: #2d2d30; }
-        
+        .sidebar-icon:hover {
+            color: #ececf1;
+            background: #2d2d30;
+        }
+
         .new-chat-btn {
             display: flex;
             align-items: center;
@@ -87,16 +109,28 @@
             width: 100%;
             margin-bottom: 12px;
         }
-        .new-chat-btn:hover { background: #2d2d30; border-color: #5a5a5e; }
-        .new-chat-btn span { font-size: 18px; font-weight: 300; color: #a0a0a5; }
-        
+        .new-chat-btn:hover {
+            background: #2d2d30;
+            border-color: #5a5a5e;
+        }
+        .new-chat-btn span {
+            font-size: 18px;
+            font-weight: 300;
+            color: #a0a0a5;
+        }
+
         .chat-list {
             flex: 1;
             overflow-y: auto;
         }
-        .chat-list::-webkit-scrollbar { width: 4px; }
-        .chat-list::-webkit-scrollbar-thumb { background: #4a4a4d; border-radius: 4px; }
-        
+        .chat-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-list::-webkit-scrollbar-thumb {
+            background: #4a4a4d;
+            border-radius: 4px;
+        }
+
         .chat-item {
             padding: 8px 12px;
             border-radius: 6px;
@@ -114,9 +148,13 @@
             margin-bottom: 2px;
             position: relative;
         }
-        .chat-item:hover { background: #2d2d30; }
-        .chat-item.active { background: #2d2d30; }
-        
+        .chat-item:hover {
+            background: #2d2d30;
+        }
+        .chat-item.active {
+            background: #2d2d30;
+        }
+
         .chat-item .chat-name {
             flex: 1;
             overflow: hidden;
@@ -140,9 +178,13 @@
             flex-shrink: 0;
             opacity: 0;
         }
-        .chat-item:hover .more-btn { opacity: 1; }
-        .chat-item .more-btn:hover { color: #ececf1; }
-        
+        .chat-item:hover .more-btn {
+            opacity: 1;
+        }
+        .chat-item .more-btn:hover {
+            color: #ececf1;
+        }
+
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -153,10 +195,12 @@
             padding: 6px 0;
             min-width: 140px;
             z-index: 100;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             margin-top: 4px;
         }
-        .dropdown-menu.active { display: block; }
+        .dropdown-menu.active {
+            display: block;
+        }
         .dropdown-menu button {
             display: block;
             width: 100%;
@@ -169,9 +213,13 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .dropdown-menu button:hover { background: #3d3d40; }
-        .dropdown-menu button.delete:hover { color: #e74c3c; }
-        
+        .dropdown-menu button:hover {
+            background: #3d3d40;
+        }
+        .dropdown-menu button.delete:hover {
+            color: #e74c3c;
+        }
+
         .sidebar-footer {
             padding-top: 12px;
             border-top: 1px solid #2d2d30;
@@ -179,7 +227,7 @@
             color: #6e6e72;
             text-align: center;
         }
-        
+
         /* ====== MAIN CHAT ====== */
         .main-chat {
             flex: 1;
@@ -189,7 +237,7 @@
             background: #343541;
             position: relative;
         }
-        
+
         .main-header {
             display: flex;
             align-items: center;
@@ -200,7 +248,7 @@
             background: #343541;
             height: 60px;
         }
-        
+
         .main-header .menu-btn {
             background: none;
             border: none;
@@ -210,17 +258,37 @@
             padding: 4px 8px;
             transition: color 0.2s;
             z-index: 20;
+            display: none;
         }
-        .main-header .menu-btn:hover { color: #a0a0a5; }
-        
+        .main-header .menu-btn:hover {
+            color: #a0a0a5;
+        }
+
         .main-header .header-logo {
             display: flex;
             align-items: center;
             gap: 10px;
+            display: none;
         }
-        .main-header .header-logo img { width: 28px; height: 28px; border-radius: 50%; }
-        .main-header .header-logo span { font-size: 18px; font-weight: 600; color: #ececf1; }
-        
+        .main-header .header-logo img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+        .main-header .header-logo span {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ececf1;
+        }
+
+        /* Show header elements only when sidebar is closed */
+        .main-header.has-logo .menu-btn {
+            display: flex;
+        }
+        .main-header.has-logo .header-logo {
+            display: flex;
+        }
+
         .agent-container {
             flex: 1;
             position: relative;
@@ -233,7 +301,7 @@
             border: none;
             background: #343541;
         }
-        
+
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -249,7 +317,10 @@
             gap: 16px;
             transition: opacity 0.3s ease;
         }
-        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
         .loading-spinner {
             width: 44px;
             height: 44px;
@@ -258,9 +329,16 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        .loading-text { color: #6e6e72; font-size: 14px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
+        .loading-text {
+            color: #6e6e72;
+            font-size: 14px;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* ====== MODALS ====== */
         .modal-overlay {
             display: none;
@@ -269,24 +347,34 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             z-index: 999;
             align-items: center;
             justify-content: center;
         }
-        .modal-overlay.active { display: flex; }
-        
+        .modal-overlay.active {
+            display: flex;
+        }
+
         .modal {
             background: #2d2d30;
             border-radius: 12px;
             padding: 24px;
             max-width: 400px;
             width: 90%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
-        .modal h3 { color: #ececf1; font-size: 16px; margin-bottom: 8px; }
-        .modal p { color: #a0a0a5; font-size: 14px; margin-bottom: 20px; }
-        
+        .modal h3 {
+            color: #ececf1;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .modal p {
+            color: #a0a0a5;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
         .modal-buttons {
             display: flex;
             gap: 8px;
@@ -300,13 +388,28 @@
             font-size: 14px;
             transition: background 0.2s;
         }
-        .modal-buttons .cancel-btn { background: #3d3d40; color: #ececf1; }
-        .modal-buttons .cancel-btn:hover { background: #4a4a4d; }
-        .modal-buttons .confirm-btn { background: #e74c3c; color: white; }
-        .modal-buttons .confirm-btn:hover { background: #c0392b; }
-        .modal-buttons .share-copy-btn { background: #1E88E5; color: white; }
-        .modal-buttons .share-copy-btn:hover { background: #1565C0; }
-        
+        .modal-buttons .cancel-btn {
+            background: #3d3d40;
+            color: #ececf1;
+        }
+        .modal-buttons .cancel-btn:hover {
+            background: #4a4a4d;
+        }
+        .modal-buttons .confirm-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        .modal-buttons .confirm-btn:hover {
+            background: #c0392b;
+        }
+        .modal-buttons .share-copy-btn {
+            background: #1E88E5;
+            color: white;
+        }
+        .modal-buttons .share-copy-btn:hover {
+            background: #1565C0;
+        }
+
         .share-link-container {
             display: flex;
             gap: 8px;
@@ -333,8 +436,10 @@
             cursor: pointer;
             font-size: 13px;
         }
-        .share-link-container button:hover { background: #1565C0; }
-        
+        .share-link-container button:hover {
+            background: #1565C0;
+        }
+
         /* ====== MOBILE ====== */
         .mobile-overlay {
             display: none;
@@ -343,11 +448,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
-        .mobile-overlay.active { display: block; }
-        
+        .mobile-overlay.active {
+            display: block;
+        }
+
         .mobile-sidebar {
             display: none;
             position: fixed;
@@ -362,8 +469,11 @@
             transform: translateX(-100%);
             transition: transform 0.3s ease;
         }
-        .mobile-sidebar.active { transform: translateX(0); display: block; }
-        
+        .mobile-sidebar.active {
+            transform: translateX(0);
+            display: block;
+        }
+
         .mobile-sidebar-header {
             display: flex;
             justify-content: space-between;
@@ -377,12 +487,27 @@
             cursor: pointer;
             color: #ececf1;
         }
-        
+
         @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-header { padding: 10px 16px; }
-            .main-header .header-logo span { font-size: 16px; }
-            .main-header .header-logo img { width: 24px; height: 24px; }
+            .sidebar {
+                display: none;
+            }
+            .main-header {
+                padding: 10px 16px;
+            }
+            .main-header .header-logo span {
+                font-size: 16px;
+            }
+            .main-header .header-logo img {
+                width: 24px;
+                height: 24px;
+            }
+            .main-header.has-logo .menu-btn {
+                display: flex;
+            }
+            .main-header.has-logo .header-logo {
+                display: flex;
+            }
         }
     </style>
 </head>
@@ -392,7 +517,7 @@
         <div class="loading-spinner"></div>
         <div class="loading-text">Loading DeepRWA...</div>
     </div>
-    
+
     <!-- Delete Modal -->
     <div class="modal-overlay" id="deleteModal">
         <div class="modal">
@@ -404,7 +529,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Share Modal -->
     <div class="modal-overlay" id="shareModal">
         <div class="modal">
@@ -419,22 +544,10 @@
             </div>
         </div>
     </div>
-    
-    <!-- Pin Modal -->
-    <div class="modal-overlay" id="pinModal">
-        <div class="modal">
-            <h3>Pin this chat</h3>
-            <p>This chat will be pinned to the top of your list.</p>
-            <div class="modal-buttons">
-                <button class="cancel-btn" onclick="closePinModal()">Cancel</button>
-                <button class="confirm-btn" onclick="confirmPin()">Pin</button>
-            </div>
-        </div>
-    </div>
-    
+
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
-    
+
     <!-- Mobile Sidebar -->
     <div class="mobile-sidebar" id="mobileSidebar">
         <div class="mobile-sidebar-header">
@@ -450,7 +563,7 @@
         <div class="chat-list" id="mobileChatList"></div>
         <div class="sidebar-footer">DeepRWA · Your AI Assistant</div>
     </div>
-    
+
     <!-- Desktop Sidebar -->
     <div class="sidebar" id="desktopSidebar">
         <div class="sidebar-header">
@@ -466,12 +579,12 @@
         <div class="chat-list" id="chatList"></div>
         <div class="sidebar-footer">DeepRWA · Your AI Assistant</div>
     </div>
-    
+
     <!-- Main Chat Area -->
     <div class="main-chat">
         <div class="main-header" id="mainHeader">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="header-logo" id="headerLogo">
+            <div class="header-logo">
                 <img src="av.png" alt="DeepRWA">
                 <span>DeepRWA</span>
             </div>
@@ -485,44 +598,52 @@
         const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
         let isCreatingNewChat = false;
         let deleteTargetId = null;
-        let pinTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
-        
+
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
-        
+
         // NO DEFAULT CHAT on first visit
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
         }
-        
+
         function saveChats() {
             localStorage.setItem('deeprwa_chats', JSON.stringify(chats));
         }
-        
+
         function isChatEmpty(chatId) {
             const chat = chats[chatId];
             return chat && (!chat.messages || chat.messages.length === 0);
         }
-        
+
+        function updateHeaderVisibility() {
+            const header = document.getElementById('mainHeader');
+            if (isSidebarOpen) {
+                header.classList.remove('has-logo');
+            } else {
+                header.classList.add('has-logo');
+            }
+        }
+
         function createNewChat() {
             if (isCreatingNewChat) return;
             if (currentChatId && isChatEmpty(currentChatId)) return;
-            
+
             for (const key in chats) {
                 if (isChatEmpty(key)) {
                     switchChat(key);
                     return;
                 }
             }
-            
+
             isCreatingNewChat = true;
             const id = 'chat_' + Date.now();
             const now = new Date();
-            const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-            
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
             chats[id] = {
                 id: id,
                 name: 'New Chat',
@@ -531,7 +652,7 @@
                 messages: [],
                 pinned: false
             };
-            
+
             currentChatId = id;
             localStorage.setItem('deeprwa_current_chat', id);
             saveChats();
@@ -540,18 +661,17 @@
             closeMobileSidebar();
             setTimeout(() => { isCreatingNewChat = false; }, 500);
         }
-        
+
         function openDeleteModal(id) {
-            if (Object.keys(chats).length <= 1) return;
             deleteTargetId = id;
             document.getElementById('deleteModal').classList.add('active');
         }
-        
+
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.remove('active');
             deleteTargetId = null;
         }
-        
+
         function confirmDelete() {
             if (deleteTargetId) {
                 delete chats[deleteTargetId];
@@ -569,17 +689,17 @@
             }
             closeDeleteModal();
         }
-        
+
         function openShareModal(id) {
             const url = window.location.href + '?chat=' + id;
             document.getElementById('shareLinkInput').value = url;
             document.getElementById('shareModal').classList.add('active');
         }
-        
+
         function closeShareModal() {
             document.getElementById('shareModal').classList.remove('active');
         }
-        
+
         function copyShareLink() {
             const input = document.getElementById('shareLinkInput');
             input.select();
@@ -589,26 +709,15 @@
             btn.textContent = 'Copied!';
             setTimeout(() => { btn.textContent = originalText; }, 2000);
         }
-        
-        function openPinModal(id) {
-            pinTargetId = id;
-            document.getElementById('pinModal').classList.add('active');
-        }
-        
-        function closePinModal() {
-            document.getElementById('pinModal').classList.remove('active');
-            pinTargetId = null;
-        }
-        
-        function confirmPin() {
-            if (pinTargetId && chats[pinTargetId]) {
-                chats[pinTargetId].pinned = !chats[pinTargetId].pinned;
+
+        function togglePin(id) {
+            if (chats[id]) {
+                chats[id].pinned = !chats[id].pinned;
                 saveChats();
                 renderChatList();
             }
-            closePinModal();
         }
-        
+
         function switchChat(id) {
             if (id === currentChatId) return;
             currentChatId = id;
@@ -617,7 +726,7 @@
             updateAgent();
             closeMobileSidebar();
         }
-        
+
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
@@ -628,7 +737,7 @@
                 renderChatList();
             }
         }
-        
+
         function toggleDropdown(id, event) {
             event.stopPropagation();
             if (currentDropdownId === id) {
@@ -642,7 +751,7 @@
                 currentDropdownId = id;
             }
         }
-        
+
         function closeDropdown() {
             if (currentDropdownId) {
                 const dropdown = document.getElementById('dropdown_' + currentDropdownId);
@@ -650,62 +759,61 @@
                 currentDropdownId = null;
             }
         }
-        
+
         function handleChatAction(action, id) {
             closeDropdown();
             if (action === 'share') {
                 openShareModal(id);
             } else if (action === 'pin') {
-                openPinModal(id);
+                togglePin(id);
             } else if (action === 'delete') {
                 openDeleteModal(id);
             }
         }
-        
+
         function renderChatList() {
             const list = document.getElementById('chatList');
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
-            
+
             if (keys.length === 0) {
-                const emptyMsg = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.<br>Click "New Chat" to start.</div>';
+                const emptyMsg = '<div style="color:#6e6e72;padding:20px;text-align:center;font-size:13px;">No chats yet.</div>';
                 list.innerHTML = emptyMsg;
                 mobileList.innerHTML = emptyMsg;
                 return;
             }
-            
+
             keys.sort((a, b) => {
                 if (chats[a].pinned && !chats[b].pinned) return -1;
                 if (!chats[a].pinned && chats[b].pinned) return 1;
                 return new Date(chats[b].created) - new Date(chats[a].created);
             });
-            
+
             let html = '';
             for (const key of keys) {
                 const chat = chats[key];
                 const isActive = key === currentChatId;
                 const timeStr = chat.time || '--:--';
                 const name = chat.name || 'New Chat';
-                const isDeletable = keys.length > 1;
                 const pinIcon = chat.pinned ? '📌' : '';
                 html += `
-                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
-                        <span class="chat-name">${pinIcon} ${name}</span>
-                        <span class="time">${timeStr}</span>
-                        <button class="more-btn" onclick="toggleDropdown('${key}', event)" title="More options">⋯</button>
-                        <div class="dropdown-menu" id="dropdown_${key}">
-                            <button onclick="handleChatAction('share', '${key}')">Share</button>
-                            <button onclick="handleChatAction('pin', '${key}')">${chat.pinned ? 'Unpin' : 'Pin'}</button>
-                            ${isDeletable ? `<button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>` : ''}
+                        <div class="chat-item ${isActive ? 'active' : ''}" onclick="switchChat('${key}')">
+                            <span class="chat-name">${pinIcon} ${name}</span>
+                            <span class="time">${timeStr}</span>
+                            <button class="more-btn" onclick="toggleDropdown('${key}', event)" title="More options">⋯</button>
+                            <div class="dropdown-menu" id="dropdown_${key}">
+                                <button onclick="handleChatAction('share', '${key}')">Share</button>
+                                <button onclick="handleChatAction('pin', '${key}')">${chat.pinned ? 'Unpin' : 'Pin'}</button>
+                                <button class="delete" onclick="handleChatAction('delete', '${key}')">Delete</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
             }
-            
+
             list.innerHTML = html;
             mobileList.innerHTML = html;
         }
-        
+
         function updateAgent() {
             const frame = document.getElementById('agentFrame');
             frame.src = TASKADE_LINK + '?t=' + Date.now();
@@ -716,27 +824,28 @@
             };
             setTimeout(() => { overlay.classList.add('hidden'); }, 2500);
         }
-        
+
         function toggleSidebar() {
-            const sidebar = document.getElementById('desktopSidebar');
             isSidebarOpen = !isSidebarOpen;
+            const sidebar = document.getElementById('desktopSidebar');
             sidebar.classList.toggle('closed', !isSidebarOpen);
+            updateHeaderVisibility();
         }
-        
+
         function openMobileSidebar() {
             document.getElementById('mobileSidebar').classList.add('active');
             document.getElementById('mobileOverlay').classList.add('active');
         }
-        
+
         function closeMobileSidebar() {
             document.getElementById('mobileSidebar').classList.remove('active');
             document.getElementById('mobileOverlay').classList.remove('active');
         }
-        
+
         document.addEventListener('click', function() {
             closeDropdown();
         });
-        
+
         window.addEventListener('message', function(event) {
             try {
                 const data = JSON.parse(event.data);
@@ -744,7 +853,7 @@
                     if (!currentChatId || !chats[currentChatId]) {
                         const id = 'chat_' + Date.now();
                         const now = new Date();
-                        const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         chats[id] = {
                             id: id,
                             name: 'New Chat',
@@ -762,9 +871,11 @@
                 }
             } catch (e) {}
         });
-        
+
+        // ============ INITIALIZE ============
         renderChatList();
-        
+        updateHeaderVisibility();
+
         const overlay = document.getElementById('loadingOverlay');
         overlay.classList.remove('hidden');
         window.addEventListener('load', function() {
