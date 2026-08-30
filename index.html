@@ -289,39 +289,46 @@
             position: relative;
             overflow: hidden;
             background: #343541;
-            display: flex;
-            flex-direction: column;
         }
 
         .agent-container iframe {
             width: 100%;
-            flex: 1;
+            height: 100%;
             border: none;
             background: #343541;
         }
 
-        /* Custom input wrapper - positioned at the bottom of the container */
-        .custom-input-wrapper {
-            position: relative;
-            z-index: 20;
+        /* ===== CUSTOM INPUT OVERLAY - EXACTLY LIKE TASKADE'S ===== */
+        .custom-input-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
             padding: 12px 20px 20px 20px;
             background: transparent;
-            flex-shrink: 0;
+            pointer-events: none;
         }
 
-        .custom-input-inner {
+        .custom-input-overlay .input-wrapper {
+            pointer-events: auto;
             display: flex;
+            align-items: center;
             gap: 10px;
             background: #40414f;
             border-radius: 12px;
             padding: 10px 16px;
             border: 1px solid #5a5a5e;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            align-items: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
             max-width: 100%;
+            transition: border-color 0.2s;
         }
 
-        .custom-input-inner input {
+        .custom-input-overlay .input-wrapper:focus-within {
+            border-color: #1E88E5;
+        }
+
+        .custom-input-overlay .input-wrapper input {
             flex: 1;
             background: transparent;
             border: none;
@@ -333,15 +340,15 @@
             min-height: 30px;
         }
 
-        .custom-input-inner input::placeholder {
+        .custom-input-overlay .input-wrapper input::placeholder {
             color: #8e8e93;
         }
 
-        .custom-input-inner button {
+        .custom-input-overlay .input-wrapper button {
             background: #1E88E5;
             border: none;
             color: white;
-            padding: 8px 20px;
+            padding: 7px 18px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
@@ -349,15 +356,11 @@
             transition: background 0.2s;
             font-family: inherit;
             flex-shrink: 0;
+            line-height: 1.4;
         }
 
-        .custom-input-inner button:hover {
+        .custom-input-overlay .input-wrapper button:hover {
             background: #1565C0;
-        }
-
-        /* Hide Taskade input */
-        .agent-container iframe {
-            pointer-events: none;
         }
 
         .loading-overlay {
@@ -564,6 +567,9 @@
             .main-header.has-logo .header-logo {
                 display: flex;
             }
+            .custom-input-overlay {
+                padding: 8px 12px 12px 12px;
+            }
         }
     </style>
 </head>
@@ -647,7 +653,14 @@
         </div>
         <div class="agent-container" id="agentContainer">
             <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
-            <!-- Custom input will be inserted here by JavaScript -->
+
+            <!-- Custom Input Overlay - Exactly like Taskade's -->
+            <div class="custom-input-overlay">
+                <div class="input-wrapper">
+                    <input type="text" id="customInput" placeholder="Ask me anything about Rwanda..." autofocus>
+                    <button id="sendBtn">Send</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -658,7 +671,6 @@
         let currentDropdownId = null;
         let isSidebarOpen = true;
 
-        // ----- CHAT DATA -----
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
 
@@ -685,7 +697,6 @@
             }
         }
 
-        // ----- NEW CHAT -----
         function createNewChat() {
             if (isCreatingNewChat) return;
 
@@ -740,7 +751,6 @@
             }
         }
 
-        // ----- DELETE, SHARE, PIN -----
         function openDeleteModal(id) {
             deleteTargetId = id;
             document.getElementById('deleteModal').classList.add('active');
@@ -806,7 +816,6 @@
             closeMobileSidebar();
         }
 
-        // ----- CHAT NAME UPDATE -----
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
@@ -820,7 +829,6 @@
             }
         }
 
-        // ----- SEND MESSAGE TO IFRAME -----
         function sendMessageToAgent(message) {
             try {
                 const iframe = document.getElementById('agentFrame');
@@ -833,7 +841,6 @@
             } catch (e) {}
         }
 
-        // ----- DROPDOWN MENU -----
         function toggleDropdown(id, event) {
             if (event) {
                 event.stopPropagation();
@@ -953,7 +960,6 @@
             }
         });
 
-        // ===== LISTEN FOR IFRAME MESSAGES =====
         window.addEventListener('message', function(event) {
             try {
                 let data;
@@ -994,107 +1000,81 @@
             } catch (e) {}
         });
 
-        // =============================================
-        // ===== CUSTOM CHAT INPUT =====
-        // =============================================
-        function setupCustomInput() {
-            const container = document.getElementById('agentContainer');
-            if (!container) return;
+        // ===== CUSTOM INPUT HANDLING =====
+        const customInput = document.getElementById('customInput');
+        const sendBtn = document.getElementById('sendBtn');
 
-            // Remove any existing custom input wrappers
-            const existing = container.querySelectorAll('.custom-input-wrapper');
-            existing.forEach(el => el.remove());
+        function sendMessage() {
+            const message = customInput.value.trim();
+            if (!message) return;
 
-            // Create the wrapper
-            const wrapper = document.createElement('div');
-            wrapper.className = 'custom-input-wrapper';
-
-            const inner = document.createElement('div');
-            inner.className = 'custom-input-inner';
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = 'Ask me anything about Rwanda...';
-
-            const button = document.createElement('button');
-            button.textContent = 'Send';
-
-            inner.appendChild(input);
-            inner.appendChild(button);
-            wrapper.appendChild(inner);
-            container.appendChild(wrapper);
-
-            // Function to send message
-            function sendMessage() {
-                const message = input.value.trim();
-                if (!message) return;
-
-                if (!currentChatId || !chats[currentChatId]) {
-                    const id = 'chat_' + Date.now();
-                    const now = new Date();
-                    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    chats[id] = {
-                        id: id,
-                        name: 'New Chat',
-                        created: now.toISOString(),
-                        time: timeStr,
-                        messages: [],
-                        pinned: false
-                    };
-                    currentChatId = id;
-                    localStorage.setItem('deeprwa_current_chat', id);
-                    saveChats();
-                    renderChatList();
-                }
-
-                updateChatName(currentChatId, message);
-                sendMessageToAgent(message);
-
-                // Try to send to iframe input
-                try {
-                    const iframe = document.getElementById('agentFrame');
-                    if (iframe && iframe.contentDocument) {
-                        const inputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
-                        for (const inp of inputs) {
-                            if (inp.placeholder && (inp.placeholder.toLowerCase().includes('ask') ||
-                                    inp.placeholder.toLowerCase().includes('message'))) {
-                                inp.value = message;
-                                const event = new Event('input', { bubbles: true });
-                                inp.dispatchEvent(event);
-                                const btns = iframe.contentDocument.querySelectorAll('button');
-                                for (const btn of btns) {
-                                    const txt = btn.textContent.toLowerCase();
-                                    if (txt.includes('send') || txt.includes('submit')) {
-                                        btn.click();
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                } catch (e) {}
-
-                input.value = '';
-                input.focus();
+            if (!currentChatId || !chats[currentChatId]) {
+                const id = 'chat_' + Date.now();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
+                currentChatId = id;
+                localStorage.setItem('deeprwa_current_chat', id);
+                saveChats();
+                renderChatList();
             }
 
-            button.addEventListener('click', sendMessage);
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
+            updateChatName(currentChatId, message);
+            sendMessageToAgent(message);
 
-            // Focus input
-            setTimeout(() => { input.focus(); }, 1000);
+            // Try to fill Taskade's input
+            try {
+                const iframe = document.getElementById('agentFrame');
+                if (iframe && iframe.contentDocument) {
+                    const inputs = iframe.contentDocument.querySelectorAll('input[type="text"], textarea');
+                    for (const inp of inputs) {
+                        if (inp.placeholder && (inp.placeholder.toLowerCase().includes('ask') ||
+                                inp.placeholder.toLowerCase().includes('message'))) {
+                            inp.value = message;
+                            const event = new Event('input', { bubbles: true });
+                            inp.dispatchEvent(event);
+                            const btns = iframe.contentDocument.querySelectorAll('button');
+                            for (const btn of btns) {
+                                const txt = btn.textContent.toLowerCase();
+                                if (txt.includes('send') || txt.includes('submit')) {
+                                    btn.click();
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            customInput.value = '';
+            customInput.focus();
         }
 
-        // Set up custom input
-        document.addEventListener('DOMContentLoaded', setupCustomInput);
-        document.getElementById('agentFrame').addEventListener('load', setupCustomInput);
-        setTimeout(setupCustomInput, 2000);
+        sendBtn.addEventListener('click', sendMessage);
+        customInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Focus input
+        setTimeout(() => { customInput.focus(); }, 1500);
+
+        // Click on container focuses input
+        document.getElementById('agentContainer').addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-input-overlay')) {
+                customInput.focus();
+            }
+        });
 
         // ============ INITIALIZE ============
         renderChatList();
