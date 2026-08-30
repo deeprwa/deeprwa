@@ -21,7 +21,6 @@
             color: #ececf1;
         }
 
-        /* ====== SIDEBAR ====== */
         .sidebar {
             width: 260px;
             background: #202123;
@@ -32,7 +31,7 @@
             height: 100vh;
             overflow-y: auto;
             border-right: 1px solid #2d2d30;
-            transition: transform 0.3s ease, width 0.3s ease;
+            transition: transform 0.3s ease;
             z-index: 10;
         }
 
@@ -176,10 +175,8 @@
             padding: 0 6px;
             transition: color 0.2s;
             flex-shrink: 0;
-            opacity: 0;
-        }
-        .chat-item:hover .more-btn {
             opacity: 1;
+            z-index: 50;
         }
         .chat-item .more-btn:hover {
             color: #ececf1;
@@ -194,7 +191,7 @@
             border-radius: 8px;
             padding: 6px 0;
             min-width: 140px;
-            z-index: 100;
+            z-index: 999;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             margin-top: 4px;
         }
@@ -228,7 +225,6 @@
             text-align: center;
         }
 
-        /* ====== MAIN CHAT ====== */
         .main-chat {
             flex: 1;
             display: flex;
@@ -338,7 +334,6 @@
             }
         }
 
-        /* ====== MODALS ====== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -439,7 +434,6 @@
             background: #1565C0;
         }
 
-        /* ====== MOBILE ====== */
         .mobile-overlay {
             display: none;
             position: fixed;
@@ -599,12 +593,12 @@
         let deleteTargetId = null;
         let currentDropdownId = null;
         let isSidebarOpen = true;
-        let messageListenerActive = false;
 
+        // ----- CHAT DATA -----
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
 
-        // NO DEFAULT CHAT on first visit
+        // FIX 4: No default chat - if no chats, start empty
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -628,8 +622,32 @@
             }
         }
 
+        // ----- FIX 1: NEW CHAT BUTTON -----
+        // Creates a new chat ONLY IF current chat has messages (not empty)
         function createNewChat() {
             if (isCreatingNewChat) return;
+
+            // If there's no chat at all, create one
+            if (!currentChatId || !chats[currentChatId]) {
+                const id = 'chat_' + Date.now();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
+                currentChatId = id;
+                localStorage.setItem('deeprwa_current_chat', id);
+                saveChats();
+                renderChatList();
+                updateAgent();
+                closeMobileSidebar();
+                return;
+            }
 
             // Check if there's already an empty chat
             for (const key in chats) {
@@ -639,27 +657,28 @@
                 }
             }
 
-            isCreatingNewChat = true;
-            const id = 'chat_' + Date.now();
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            chats[id] = {
-                id: id,
-                name: 'New Chat',
-                created: now.toISOString(),
-                time: timeStr,
-                messages: [],
-                pinned: false
-            };
-
-            currentChatId = id;
-            localStorage.setItem('deeprwa_current_chat', id);
-            saveChats();
-            renderChatList();
-            updateAgent();
-            closeMobileSidebar();
-            setTimeout(() => { isCreatingNewChat = false; }, 500);
+            // If current chat has messages, create a new one
+            if (!isChatEmpty(currentChatId)) {
+                isCreatingNewChat = true;
+                const id = 'chat_' + Date.now();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                chats[id] = {
+                    id: id,
+                    name: 'New Chat',
+                    created: now.toISOString(),
+                    time: timeStr,
+                    messages: [],
+                    pinned: false
+                };
+                currentChatId = id;
+                localStorage.setItem('deeprwa_current_chat', id);
+                saveChats();
+                renderChatList();
+                updateAgent();
+                closeMobileSidebar();
+                setTimeout(() => { isCreatingNewChat = false; }, 500);
+            }
         }
 
         function openDeleteModal(id) {
@@ -727,11 +746,11 @@
             closeMobileSidebar();
         }
 
+        // ----- FIX 2: CHAT NAME UPDATES TO USER'S FIRST MESSAGE -----
         function updateChatName(id, firstMessage) {
             if (chats[id] && chats[id].name === 'New Chat') {
                 const name = firstMessage.length > 25 ? firstMessage.substring(0, 25) + '...' : firstMessage;
                 chats[id].name = name;
-                // Store the message so we know this chat has content
                 if (!chats[id].messages) {
                     chats[id].messages = [];
                 }
@@ -741,15 +760,26 @@
             }
         }
 
+        // ----- FIX 3: DROPDOWN MENU (SHARE, PIN, DELETE) -----
         function toggleDropdown(id, event) {
-            event.stopPropagation();
-            if (currentDropdownId === id) {
-                closeDropdown();
-                return;
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
             }
-            closeDropdown();
+
+            // Close any open dropdown
+            if (currentDropdownId && currentDropdownId !== id) {
+                const oldDropdown = document.getElementById('dropdown_' + currentDropdownId);
+                if (oldDropdown) oldDropdown.classList.remove('active');
+            }
+
             const dropdown = document.getElementById('dropdown_' + id);
-            if (dropdown) {
+            if (!dropdown) return;
+
+            if (currentDropdownId === id) {
+                dropdown.classList.remove('active');
+                currentDropdownId = null;
+            } else {
                 dropdown.classList.add('active');
                 currentDropdownId = id;
             }
@@ -846,28 +876,27 @@
         }
 
         // Close dropdown when clicking outside
-        document.addEventListener('click', function() {
-            closeDropdown();
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.more-btn') && !e.target.closest('.dropdown-menu')) {
+                closeDropdown();
+            }
         });
 
-        // ============ MESSAGE LISTENER ============
-        // Listen for messages from the iframe
+        // ----- MESSAGE LISTENER -----
+        // Detects when a user sends a message in the iframe
         window.addEventListener('message', function(event) {
             try {
-                // Try to parse the data as JSON
                 let data;
                 if (typeof event.data === 'string') {
                     try {
                         data = JSON.parse(event.data);
                     } catch (e) {
-                        // Not JSON, ignore
                         return;
                     }
                 } else {
                     data = event.data;
                 }
 
-                // Check if this is a user message
                 if (data && data.type === 'user_message' && data.message) {
                     const userMessage = data.message.trim();
                     if (!userMessage) return;
@@ -891,11 +920,11 @@
                         renderChatList();
                     }
 
-                    // Update chat name with the user's first message
+                    // Update chat name with the first message
                     updateChatName(currentChatId, userMessage);
                 }
             } catch (e) {
-                // Ignore any errors
+                // Ignore errors
             }
         });
 
