@@ -6,11 +6,7 @@
     <title>DeepRWA</title>
     <link rel="icon" href="av.png" type="image/png">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -33,7 +29,7 @@
             overflow-y: auto;
             border-right: 1px solid #2d2d30;
             transition: transform 0.3s ease;
-            z-index: 5;
+            z-index: 10;
         }
         
         .sidebar.closed {
@@ -84,11 +80,7 @@
             transition: color 0.2s;
             border-radius: 4px;
         }
-        
-        .sidebar-icon:hover {
-            color: #ececf1;
-            background: #2d2d30;
-        }
+        .sidebar-icon:hover { color: #ececf1; background: #2d2d30; }
         
         .new-chat-btn {
             display: flex;
@@ -107,23 +99,13 @@
             width: 100%;
             margin-bottom: 12px;
         }
-        
-        .new-chat-btn:hover {
-            background: #2d2d30;
-            border-color: #5a5a5e;
-        }
-        
-        .new-chat-btn span {
-            font-size: 18px;
-            font-weight: 300;
-            color: #a0a0a5;
-        }
+        .new-chat-btn:hover { background: #2d2d30; border-color: #5a5a5e; }
+        .new-chat-btn span { font-size: 18px; font-weight: 300; color: #a0a0a5; }
         
         .chat-list {
             flex: 1;
             overflow-y: auto;
         }
-        
         .chat-list::-webkit-scrollbar { width: 4px; }
         .chat-list::-webkit-scrollbar-thumb { background: #4a4a4d; border-radius: 4px; }
         
@@ -144,7 +126,6 @@
             margin-bottom: 2px;
             position: relative;
         }
-        
         .chat-item:hover { background: #2d2d30; }
         .chat-item.active { background: #2d2d30; }
         
@@ -154,14 +135,12 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        
         .chat-item .time {
             font-size: 11px;
             color: #6e6e72;
             white-space: nowrap;
             flex-shrink: 0;
         }
-        
         .chat-item .more-btn {
             background: none;
             border: none;
@@ -173,11 +152,9 @@
             transition: opacity 0.2s;
             flex-shrink: 0;
         }
-        
         .chat-item:hover .more-btn { opacity: 1; }
         .chat-item .more-btn:hover { color: #ececf1; }
         
-        /* Dropdown menu */
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -191,9 +168,7 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             margin-top: 4px;
         }
-        
         .dropdown-menu.active { display: block; }
-        
         .dropdown-menu button {
             display: block;
             width: 100%;
@@ -206,7 +181,6 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        
         .dropdown-menu button:hover { background: #3d3d40; }
         .dropdown-menu button.delete:hover { color: #e74c3c; }
         
@@ -247,9 +221,8 @@
             font-size: 20px;
             padding: 4px 8px;
             transition: color 0.2s;
-            z-index: 10;
+            z-index: 20;
         }
-        
         .main-header .menu-btn:hover { color: #a0a0a5; }
         
         .main-header .header-logo {
@@ -257,13 +230,11 @@
             align-items: center;
             gap: 10px;
         }
-        
         .main-header .header-logo img {
             width: 28px;
             height: 28px;
             border-radius: 50%;
         }
-        
         .main-header .header-logo span {
             font-size: 18px;
             font-weight: 600;
@@ -276,7 +247,6 @@
             overflow: hidden;
             background: #343541;
         }
-        
         .agent-container iframe {
             width: 100%;
             height: 100%;
@@ -284,7 +254,6 @@
             background: #343541;
         }
         
-        /* Loading overlay */
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -300,11 +269,7 @@
             gap: 16px;
             transition: opacity 0.3s ease;
         }
-        
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
         
         .loading-spinner {
             width: 44px;
@@ -314,17 +279,9 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+        .loading-text { color: #6e6e72; font-size: 14px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
-        .loading-text {
-            color: #6e6e72;
-            font-size: 14px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -337,7 +294,6 @@
             align-items: center;
             justify-content: center;
         }
-        
         .modal-overlay.active { display: flex; }
         
         .modal {
@@ -348,25 +304,14 @@
             width: 90%;
             box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
-        
-        .modal h3 {
-            color: #ececf1;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        
-        .modal p {
-            color: #a0a0a5;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
+        .modal h3 { color: #ececf1; font-size: 16px; margin-bottom: 8px; }
+        .modal p { color: #a0a0a5; font-size: 14px; margin-bottom: 20px; }
         
         .modal-buttons {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
         }
-        
         .modal-buttons button {
             padding: 8px 20px;
             border: none;
@@ -375,23 +320,11 @@
             font-size: 14px;
             transition: background 0.2s;
         }
-        
-        .modal-buttons .cancel-btn {
-            background: #3d3d40;
-            color: #ececf1;
-        }
+        .modal-buttons .cancel-btn { background: #3d3d40; color: #ececf1; }
         .modal-buttons .cancel-btn:hover { background: #4a4a4d; }
-        
-        .modal-buttons .confirm-btn {
-            background: #e74c3c;
-            color: white;
-        }
+        .modal-buttons .confirm-btn { background: #e74c3c; color: white; }
         .modal-buttons .confirm-btn:hover { background: #c0392b; }
-        
-        .modal-buttons .share-copy-btn {
-            background: #1E88E5;
-            color: white;
-        }
+        .modal-buttons .share-copy-btn { background: #1E88E5; color: white; }
         .modal-buttons .share-copy-btn:hover { background: #1565C0; }
         
         .share-link-container {
@@ -402,7 +335,6 @@
             border-radius: 6px;
             padding: 4px;
         }
-        
         .share-link-container input {
             flex: 1;
             background: transparent;
@@ -412,7 +344,6 @@
             font-size: 13px;
             outline: none;
         }
-        
         .share-link-container button {
             background: #1E88E5;
             border: none;
@@ -451,11 +382,7 @@
             transform: translateX(-100%);
             transition: transform 0.3s ease;
         }
-        
-        .mobile-sidebar.active {
-            transform: translateX(0);
-            display: block;
-        }
+        .mobile-sidebar.active { transform: translateX(0); display: block; }
         
         .mobile-sidebar-header {
             display: flex;
@@ -463,7 +390,6 @@
             align-items: center;
             margin-bottom: 12px;
         }
-        
         .mobile-sidebar-header .close-btn {
             background: none;
             border: none;
@@ -563,7 +489,7 @@
     
     <!-- Main Chat Area -->
     <div class="main-chat">
-        <div class="main-header">
+        <div class="main-header" id="mainHeader">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
             <div class="header-logo" id="headerLogo">
                 <img src="av.png" alt="DeepRWA">
@@ -576,20 +502,16 @@
     </div>
 
     <script>
-        // ============ CONFIGURATION ============
         const TASKADE_LINK = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
         let isCreatingNewChat = false;
         let deleteTargetId = null;
         let pinTargetId = null;
-        let shareTargetId = null;
-        let isSidebarOpen = true;
         let currentDropdownId = null;
+        let isSidebarOpen = true;
         
-        // ============ CHAT MANAGEMENT ============
         let chats = JSON.parse(localStorage.getItem('deeprwa_chats')) || {};
         let currentChatId = localStorage.getItem('deeprwa_current_chat') || null;
         
-        // If no chats exist, start empty
         if (Object.keys(chats).length === 0) {
             currentChatId = null;
             localStorage.removeItem('deeprwa_current_chat');
@@ -606,7 +528,6 @@
         
         function createNewChat() {
             if (isCreatingNewChat) return;
-            
             if (currentChatId && isChatEmpty(currentChatId)) return;
             
             for (const key in chats) {
@@ -617,7 +538,6 @@
             }
             
             isCreatingNewChat = true;
-            
             const id = 'chat_' + Date.now();
             const now = new Date();
             const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -637,10 +557,7 @@
             renderChatList();
             updateAgent();
             closeMobileSidebar();
-            
-            setTimeout(() => {
-                isCreatingNewChat = false;
-            }, 500);
+            setTimeout(() => { isCreatingNewChat = false; }, 500);
         }
         
         function openDeleteModal(id) {
@@ -673,7 +590,6 @@
         }
         
         function openShareModal(id) {
-            shareTargetId = id;
             const url = window.location.href + '?chat=' + id;
             document.getElementById('shareLinkInput').value = url;
             document.getElementById('shareModal').classList.add('active');
@@ -681,7 +597,6 @@
         
         function closeShareModal() {
             document.getElementById('shareModal').classList.remove('active');
-            shareTargetId = null;
         }
         
         function copyShareLink() {
@@ -757,13 +672,9 @@
         
         function handleChatAction(action, id) {
             closeDropdown();
-            if (action === 'share') {
-                openShareModal(id);
-            } else if (action === 'pin') {
-                openPinModal(id);
-            } else if (action === 'delete') {
-                openDeleteModal(id);
-            }
+            if (action === 'share') openShareModal(id);
+            else if (action === 'pin') openPinModal(id);
+            else if (action === 'delete') openDeleteModal(id);
         }
         
         function renderChatList() {
@@ -771,7 +682,6 @@
             const mobileList = document.getElementById('mobileChatList');
             const keys = Object.keys(chats);
             
-            // Sort: pinned first, then by creation date
             keys.sort((a, b) => {
                 if (chats[a].pinned && !chats[b].pinned) return -1;
                 if (!chats[a].pinned && chats[b].pinned) return 1;
@@ -803,7 +713,6 @@
                     `;
                 }
             }
-            
             list.innerHTML = html;
             mobileList.innerHTML = html;
         }
@@ -811,26 +720,19 @@
         function updateAgent() {
             const frame = document.getElementById('agentFrame');
             frame.src = TASKADE_LINK + '?t=' + Date.now();
-            
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.remove('hidden');
-            
             frame.onload = function() {
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 400);
+                setTimeout(() => { overlay.classList.add('hidden'); }, 400);
             };
-            
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 2500);
+            setTimeout(() => { overlay.classList.add('hidden'); }, 2500);
         }
         
         function toggleSidebar() {
             const sidebar = document.getElementById('desktopSidebar');
             isSidebarOpen = !isSidebarOpen;
             sidebar.classList.toggle('closed', !isSidebarOpen);
-            // The header logo is always visible, no need to toggle it
+            // The header logo is always visible
         }
         
         function openMobileSidebar() {
@@ -843,12 +745,8 @@
             document.getElementById('mobileOverlay').classList.remove('active');
         }
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function() {
-            closeDropdown();
-        });
+        document.addEventListener('click', function() { closeDropdown(); });
         
-        // Listen for messages from the iframe
         window.addEventListener('message', function(event) {
             try {
                 const data = JSON.parse(event.data);
@@ -875,23 +773,14 @@
             } catch (e) {}
         });
         
-        // ============ INITIALIZE ============
         renderChatList();
         
         const overlay = document.getElementById('loadingOverlay');
         overlay.classList.remove('hidden');
-        
         window.addEventListener('load', function() {
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 800);
+            setTimeout(() => { overlay.classList.add('hidden'); }, 800);
         });
-        
-        setTimeout(() => {
-            overlay.classList.add('hidden');
-        }, 3000);
-        
-        // Ensure header logo is always visible (it stays in the main header)
+        setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
     </script>
 </body>
 </html>
