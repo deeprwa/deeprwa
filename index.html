@@ -12,6 +12,7 @@
             box-sizing: border-box;
         }
 
+        /* ALL backgrounds match the chat area color */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #343541;
@@ -35,7 +36,6 @@
             flex: 1;
             border: none;
             background: #343541;
-            /* Allow clicks on the iframe EXCEPT in the footer area */
             pointer-events: auto;
         }
 
@@ -81,14 +81,13 @@
             }
         }
 
-        /* ===== COVER "POWERED BY TASKADE" ===== */
-        /* Completely non-interactive - cannot click, select, or copy */
+        /* ===== FOOTER COVER - MATCHES CHAT COLOR ===== */
         .footer-cover {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 71px;
+            height: 75px;
             background: #343541;
             z-index: 30;
             pointer-events: none;
@@ -104,17 +103,22 @@
             border: none;
         }
 
-        /* Block all clicks in the footer area by covering the iframe */
+        /* ===== CLICK BLOCKER - PREVENTS CLICKS ON "POWERED BY TASKADE" ===== */
         .footer-blocker {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 71px;
+            height: 75px;
             z-index: 31;
             background: transparent;
             pointer-events: auto;
             cursor: default;
+        }
+
+        /* Make sure the iframe doesn't cover the footer */
+        .agent-container iframe {
+            z-index: 1;
         }
     </style>
 </head>
@@ -128,7 +132,8 @@
 
         <!-- Footer Cover: Hides "Powered by Taskade" -->
         <div class="footer-cover"></div>
-        <!-- Footer Blocker: Prevents clicks on the iframe in the footer area -->
+
+        <!-- Footer Blocker: Prevents clicks -->
         <div class="footer-blocker"></div>
 
         <!-- Taskade Agent -->
