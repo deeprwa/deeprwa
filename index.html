@@ -80,6 +80,7 @@
         }
 
         /* ===== COVER "POWERED BY TASKADE" ===== */
+        /* Completely non-interactive - cannot click, select, or copy */
         .footer-cover {
             position: absolute;
             bottom: 0;
@@ -89,6 +90,28 @@
             background: #343541;
             z-index: 15;
             pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            cursor: default;
+            /* Prevent any text selection or interaction */
+            touch-action: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Also prevent any interaction with the iframe in that area */
+        .agent-container iframe {
+            pointer-events: auto;
+        }
+
+        /* Ensure the cover stays on top and blocks everything below it */
+        .footer-cover {
+            /* Prevent any content from showing through */
+            opacity: 1;
+            /* Ensure it covers the area completely */
+            box-shadow: none;
+            border: none;
         }
     </style>
 </head>
