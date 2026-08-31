@@ -26,11 +26,18 @@
            ========================================================= */
 
         :root {
-            /*
-             * This is the color used by the outer sides and
-             * bottom area.
-             */
             --outer-theme: #1e1e1f;
+
+            /*
+             * Based on the actual browser viewport coordinates,
+             * NOT the full screenshot coordinates.
+             *
+             * The Chrome browser toolbar is outside this page.
+             */
+
+            --chat-width: 672px;
+            --chat-top: 40px;
+            --footer-height: 72px;
         }
 
 
@@ -59,6 +66,7 @@
 
             color: #ececf1;
         }
+
 
         body {
             position: relative;
@@ -89,7 +97,7 @@
 
 
         /* =========================================================
-           TASKADE AGENT CONTAINER
+           TASKADE CONTAINER
            ========================================================= */
 
         .agent-container {
@@ -145,41 +153,25 @@
 
 
         /* =========================================================
-           OUTER THEME MASKS
+           OUTER THEME — TOP
            =========================================================
 
            IMPORTANT:
 
-           The Taskade iframe is cross-origin, meaning this page
-           cannot directly change the background of the HTML
-           elements inside the iframe.
+           The original screenshot's chat begins around screen
+           Y = 127px.
 
-           Therefore, we cover ONLY the areas OUTSIDE the central
-           chat panel.
+           The browser toolbar takes approximately 87px.
 
-           The central chat itself is deliberately NOT covered.
+           Therefore:
 
-           Approximate dimensions from your screenshot:
+               127 - 87 = 40px
 
-               Chat width  = 672px
-               Chat top    = 127px
-               Chat bottom = 656px
+           So the CSS top position is 40px.
 
-           This preserves the entire central Taskade panel,
-           including:
-
-             - DeepRWA header
-             - av.png icon
-             - chat area
-             - suggestion buttons
-             - message input
-             - "DeepRWA can make a mistake."
+           This is critical because the previous 127px value
+           accidentally covered the DeepRWA header.
         */
-
-
-        /* =========================================================
-           TOP OUTER AREA
-           ========================================================= */
 
         .outer-top {
             position: fixed;
@@ -188,7 +180,7 @@
             left: 0;
             right: 0;
 
-            height: 127px;
+            height: var(--chat-top);
 
             background: var(--outer-theme);
 
@@ -199,25 +191,35 @@
 
 
         /* =========================================================
-           LEFT OUTER AREA
-           ========================================================= */
+           OUTER THEME — LEFT
+           =========================================================
+
+           This covers ONLY the left side of the chat.
+
+           The central chat remains untouched.
+        */
 
         .outer-left {
             position: fixed;
 
-            top: 127px;
-            bottom: 72px;
+            top: var(--chat-top);
+            bottom: var(--footer-height);
             left: 0;
 
             /*
-             * Center the 672px chat panel.
-             *
-             * Example at 1366px viewport:
-             *
-             * (1366 - 672) / 2 = 347px
+             * At 1366px viewport width:
+
+                 (1366 - 672) / 2
+                 = 347px
              */
 
-            width: calc((100vw - 672px) / 2);
+            width:
+                max(
+                    0px,
+                    calc(
+                        (100vw - var(--chat-width)) / 2
+                    )
+                );
 
             background: var(--outer-theme);
 
@@ -228,17 +230,23 @@
 
 
         /* =========================================================
-           RIGHT OUTER AREA
+           OUTER THEME — RIGHT
            ========================================================= */
 
         .outer-right {
             position: fixed;
 
-            top: 127px;
-            bottom: 72px;
+            top: var(--chat-top);
+            bottom: var(--footer-height);
             right: 0;
 
-            width: calc((100vw - 672px) / 2);
+            width:
+                max(
+                    0px,
+                    calc(
+                        (100vw - var(--chat-width)) / 2
+                    )
+                );
 
             background: var(--outer-theme);
 
@@ -254,10 +262,13 @@
 
            IMPORTANT:
 
-           This must remain 72px.
+           Keep this at exactly 72px.
 
-           The "DeepRWA can make a mistake." text is ABOVE this
-           area and therefore remains visible.
+           This leaves the:
+
+               "DeepRWA can make a mistake."
+
+           message visible above it.
         */
 
         .footer-cover {
@@ -267,7 +278,7 @@
             right: 0;
             bottom: 0;
 
-            height: 72px;
+            height: var(--footer-height);
 
             background: var(--outer-theme) !important;
 
@@ -290,12 +301,7 @@
 
         /* =========================================================
            FOOTER CLICK BLOCKER
-           =========================================================
-
-           Prevents clicks in the bottom covered area.
-
-           It is exactly the same height as the footer cover.
-        */
+           ========================================================= */
 
         .footer-blocker {
             position: fixed;
@@ -304,7 +310,7 @@
             right: 0;
             bottom: 0;
 
-            height: 72px;
+            height: var(--footer-height);
 
             z-index: 21;
 
@@ -408,7 +414,7 @@
 
 
     <!-- =========================================================
-         PARENT PAGE BACKGROUND
+         PARENT BACKGROUND
          ========================================================= -->
 
     <div class="page-background"></div>
@@ -456,11 +462,23 @@
 
     <!-- =========================================================
          OUTER THEME MASKS
-         
-         These cover ONLY the areas surrounding the central
-         Taskade chat.
 
-         The central chat remains completely untouched.
+         These cover ONLY the area surrounding the central
+         Taskade panel.
+
+         They DO NOT cover the central panel.
+
+         Therefore the following remain visible:
+
+         ✓ av.png
+         ✓ DeepRWA header
+         ✓ Header divider
+         ✓ DeepRWA logo
+         ✓ DeepRWA title
+         ✓ Welcome message
+         ✓ Suggestion buttons
+         ✓ Message input
+         ✓ "DeepRWA can make a mistake."
          ========================================================= -->
 
     <div class="outer-top"></div>
@@ -512,7 +530,7 @@
             overlay.classList.remove("hidden");
 
 
-            /* Hide it shortly after Taskade loads */
+            /* Hide after iframe loads */
 
             iframe.addEventListener(
                 "load",
@@ -535,9 +553,7 @@
 
 
             /*
-             * Failsafe:
-             * If Taskade takes longer than expected, don't leave
-             * the loading screen permanently visible.
+             * Safety timeout.
              */
 
             setTimeout(
