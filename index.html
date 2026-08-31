@@ -157,52 +157,60 @@
         }
 
         /* =========================================================
-           FOOTER COVER
-           ========================================================= */
+   FOOTER COVER
+   ========================================================= */
 
-        .footer-cover {
-            position: fixed;
+.footer-cover {
+    position: fixed;
 
-            left: 0;
-            right: 0;
-            bottom: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-            height: 112px;
+    /* IMPORTANT:
+       The original screenshot shows the bottom strip
+       beginning 72px above the bottom of the viewport. */
+    height: 72px;
 
-            background: var(--outer-theme) !important;
+    background: var(--outer-theme) !important;
 
-            z-index: 20;
+    z-index: 20;
 
-            pointer-events: none;
+    pointer-events: none;
 
-            user-select: none;
+    user-select: none;
 
-            border: 0;
-            outline: 0;
-            box-shadow: none;
-        }
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 
-        /* =========================================================
-           FOOTER CLICK BLOCKER
-           ========================================================= */
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+}
 
-        .footer-blocker {
-            position: fixed;
 
-            left: 0;
-            right: 0;
-            bottom: 0;
+/* =========================================================
+   FOOTER CLICK BLOCKER
+   ========================================================= */
 
-            height: 112px;
+.footer-blocker {
+    position: fixed;
 
-            z-index: 21;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-            background: transparent;
+    height: 72px;
 
-            pointer-events: auto;
+    z-index: 21;
 
-            cursor: default;
-        }
+    background: transparent;
+
+    pointer-events: auto;
+
+    cursor: default;
+}
 
         /* =========================================================
            LOADING OVERLAY
