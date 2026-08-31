@@ -79,24 +79,56 @@
             }
         }
 
-        /* ===== COVER "POWERED BY TASKADE" ===== */
-        /* This covers the footer area with a dark bar */
-        .footer-cover {
+        /* ===== 1. ROUNDED BORDER ON INPUT FIELD ===== */
+        .input-border-overlay {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            width: calc(100% - 40px);
+            max-width: 768px;
+            height: 48px;
+            border-radius: 12px;
+            border: 2px solid #5a5a5e;
+            background: transparent;
+            pointer-events: none;
+            transition: border-color 0.3s ease;
+        }
+
+        /* When focused, change border color */
+        .input-border-overlay.active {
+            border-color: #1E88E5;
+        }
+
+        /* ===== 2. COVER "POWERED BY TASKADE" ===== */
+        .powered-cover {
+            position: absolute;
+            bottom: 8px;
+            right: 16px;
+            z-index: 15;
             background: #343541;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 20px;
+            padding: 2px 12px;
+            border-radius: 4px;
             font-size: 12px;
             color: #8e8e93;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             pointer-events: none;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .input-border-overlay {
+                width: calc(100% - 24px);
+                bottom: 12px;
+                height: 42px;
+            }
+            .powered-cover {
+                font-size: 10px;
+                bottom: 4px;
+                right: 10px;
+                padding: 2px 8px;
+            }
         }
     </style>
 </head>
@@ -108,8 +140,11 @@
             <div class="loading-text">Loading DeepRWA...</div>
         </div>
 
-        <!-- Footer Cover: Hides "Powered by Taskade" -->
-        <div class="footer-cover" id="footerCover">DeepRWA can make a mistake.</div>
+        <!-- Input Border Overlay -->
+        <div class="input-border-overlay" id="inputBorder"></div>
+
+        <!-- Cover "Powered by Taskade" -->
+        <div class="powered-cover" id="poweredCover">DeepRWA can make a mistake.</div>
 
         <!-- Taskade Agent -->
         <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
@@ -136,10 +171,43 @@
             }, 3000);
         }
 
+        // ===== INPUT BORDER FOCUS =====
+        function setupInputFocus() {
+            const border = document.getElementById('inputBorder');
+            const iframe = document.getElementById('agentFrame');
+
+            // Try to detect focus inside iframe
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (doc) {
+                    const inputs = doc.querySelectorAll('input[type="text"], textarea');
+                    for (const inp of inputs) {
+                        inp.addEventListener('focus', function() {
+                            border.classList.add('active');
+                        });
+                        inp.addEventListener('blur', function() {
+                            border.classList.remove('active');
+                        });
+                        break;
+                    }
+                }
+            } catch (e) {
+                // Cross-origin - fallback to click detection
+                document.addEventListener('click', function(e) {
+                    const rect = border.getBoundingClientRect();
+                    if (e.clientY > window.innerHeight - 100) {
+                        border.classList.add('active');
+                        setTimeout(() => border.classList.remove('active'), 2000);
+                    }
+                });
+            }
+        }
+
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('loadingOverlay').classList.remove('hidden');
             handleLoading();
+            setupInputFocus();
         });
 
         window.addEventListener('load', function() {
