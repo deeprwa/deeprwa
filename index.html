@@ -12,7 +12,6 @@
             box-sizing: border-box;
         }
 
-        /* Force the entire page background */
         html, body {
             background: #1e1e1f !important;
             height: 100vh;
@@ -26,16 +25,18 @@
         body {
             display: flex;
             background: #1e1e1f !important;
+            margin: 0;
+            padding: 0;
         }
 
-        /* Full page background cover */
+        /* Full page background cover - ensures no gaps */
         .page-background {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #1e1e1f !important;
+            background: #1e1e1f;
             z-index: 0;
             pointer-events: none;
         }
@@ -45,22 +46,33 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            width: 100%;
             background: #1e1e1f !important;
             position: relative;
             z-index: 1;
             margin: 0;
             padding: 0;
-            width: 100%;
+            /* Remove any gaps */
+            border: none;
+            outline: none;
         }
 
+        /* Force iframe to fill the entire container */
         .agent-container iframe {
+            display: block;
             width: 100%;
+            height: 100%;
             flex: 1;
             border: none;
-            background: #1e1e1f !important;
+            background: transparent !important;
             pointer-events: auto;
             position: relative;
             z-index: 1;
+            margin: 0;
+            padding: 0;
+            /* Remove any default iframe styling */
+            border: none;
+            outline: none;
         }
 
         /* ===== LOADING OVERLAY ===== */
@@ -140,13 +152,14 @@
             cursor: default;
         }
 
+        /* Remove any possible gaps or margins */
         .agent-container iframe {
-            z-index: 1;
+            display: block;
         }
 
-        .agent-container {
-            margin: 0;
-            padding: 0;
+        /* Hide scrollbar if any */
+        ::-webkit-scrollbar {
+            display: none;
         }
     </style>
 </head>
@@ -204,10 +217,13 @@
                 container.style.background = '#1e1e1f';
             }
 
-            // Force iframe
+            // Force iframe background to transparent
             const iframe = document.getElementById('agentFrame');
             if (iframe) {
-                iframe.style.background = '#1e1e1f';
+                iframe.style.background = 'transparent';
+                // Ensure iframe fills the container
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
             }
         }
 
