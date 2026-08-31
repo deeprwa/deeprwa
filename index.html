@@ -3,30 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>DeepRWA</title>
+
     <link rel="icon" href="av.png" type="image/png">
 
     <style>
+
+        /* =========================================================
+           GLOBAL RESET
+           ========================================================= */
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+
+        /* =========================================================
+           THEME
+           ========================================================= */
+
         :root {
+            /*
+             * This is the color used by the outer sides and
+             * bottom area.
+             */
             --outer-theme: #1e1e1f;
         }
+
+
+        /* =========================================================
+           HTML + BODY
+           ========================================================= */
 
         html,
         body {
             width: 100%;
             height: 100%;
+
             margin: 0;
             padding: 0;
+
             overflow: hidden;
+
             background: var(--outer-theme) !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                         Roboto, sans-serif;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                sans-serif;
+
             color: #ececf1;
         }
 
@@ -34,25 +64,41 @@
             position: relative;
         }
 
+
         /* =========================================================
            PARENT PAGE BACKGROUND
            ========================================================= */
 
         .page-background {
             position: fixed;
-            inset: 0;
+
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            width: 100%;
+            height: 100%;
+
             background: var(--outer-theme);
+
             z-index: 0;
+
             pointer-events: none;
         }
 
+
         /* =========================================================
-           TASKADE IFRAME
+           TASKADE AGENT CONTAINER
            ========================================================= */
 
         .agent-container {
             position: fixed;
-            inset: 0;
+
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
 
             width: 100%;
             height: 100%;
@@ -68,9 +114,18 @@
             z-index: 1;
         }
 
+
+        /* =========================================================
+           TASKADE IFRAME
+           ========================================================= */
+
         .agent-container iframe {
             position: absolute;
-            inset: 0;
+
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
 
             display: block;
 
@@ -88,129 +143,178 @@
             z-index: 1;
         }
 
+
         /* =========================================================
-           OUTER THEME MASK
+           OUTER THEME MASKS
+           =========================================================
 
-           The iframe is cross-origin, so we cannot modify the
-           Taskade page's own #17191C background.
+           IMPORTANT:
 
-           This layer sits above the iframe and paints the area
-           surrounding the central chat with #1E1E1F.
+           The Taskade iframe is cross-origin, meaning this page
+           cannot directly change the background of the HTML
+           elements inside the iframe.
 
-           pointer-events:none means the Taskade interface remains
-           clickable.
+           Therefore, we cover ONLY the areas OUTSIDE the central
+           chat panel.
+
+           The central chat itself is deliberately NOT covered.
+
+           Approximate dimensions from your screenshot:
+
+               Chat width  = 672px
+               Chat top    = 127px
+               Chat bottom = 656px
+
+           This preserves the entire central Taskade panel,
+           including:
+
+             - DeepRWA header
+             - av.png icon
+             - chat area
+             - suggestion buttons
+             - message input
+             - "DeepRWA can make a mistake."
+        */
+
+
+        /* =========================================================
+           TOP OUTER AREA
            ========================================================= */
 
-        .outer-theme-mask {
+        .outer-top {
             position: fixed;
-            inset: 0;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 127px;
+
+            background: var(--outer-theme);
 
             z-index: 10;
 
             pointer-events: none;
-
-            /*
-             * Central chat dimensions from the supplied screenshot:
-             *
-             * Width  ≈ 672px
-             * Top    ≈ 127px
-             * Bottom ≈ 656px
-             *
-             * The transparent center is created using a box-shadow.
-             */
-
-            left: 50%;
-            top: 127px;
-
-            width: 672px;
-            height: 529px;
-
-            transform: translateX(-50%);
-
-            background: transparent;
-
-            box-shadow:
-                0 0 0 100vmax var(--outer-theme);
         }
 
-        /* =========================================================
-           TOP CORNER / ROUNDED CHAT BOUNDARY
 
-           Keeps the mask from visually covering the rounded
-           corners of the Taskade chat panel.
+        /* =========================================================
+           LEFT OUTER AREA
            ========================================================= */
 
-        .outer-theme-mask::before {
-            content: "";
+        .outer-left {
+            position: fixed;
 
-            position: absolute;
-
-            inset: 0;
-
-            border-radius: 15px;
+            top: 127px;
+            bottom: 72px;
+            left: 0;
 
             /*
-             * The shadow is already doing the main masking.
-             * This keeps the central area transparent.
+             * Center the 672px chat panel.
+             *
+             * Example at 1366px viewport:
+             *
+             * (1366 - 672) / 2 = 347px
              */
-            background: transparent;
+
+            width: calc((100vw - 672px) / 2);
+
+            background: var(--outer-theme);
+
+            z-index: 10;
+
+            pointer-events: none;
         }
 
+
         /* =========================================================
-   FOOTER COVER
-   ========================================================= */
+           RIGHT OUTER AREA
+           ========================================================= */
 
-.footer-cover {
-    position: fixed;
+        .outer-right {
+            position: fixed;
 
-    left: 0;
-    right: 0;
-    bottom: 0;
+            top: 127px;
+            bottom: 72px;
+            right: 0;
 
-    /* IMPORTANT:
-       The original screenshot shows the bottom strip
-       beginning 72px above the bottom of the viewport. */
-    height: 72px;
+            width: calc((100vw - 672px) / 2);
 
-    background: var(--outer-theme) !important;
+            background: var(--outer-theme);
 
-    z-index: 20;
+            z-index: 10;
 
-    pointer-events: none;
-
-    user-select: none;
-
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-
-    border: 0;
-    outline: 0;
-    box-shadow: none;
-}
+            pointer-events: none;
+        }
 
 
-/* =========================================================
-   FOOTER CLICK BLOCKER
-   ========================================================= */
+        /* =========================================================
+           BOTTOM FOOTER COVER
+           =========================================================
 
-.footer-blocker {
-    position: fixed;
+           IMPORTANT:
 
-    left: 0;
-    right: 0;
-    bottom: 0;
+           This must remain 72px.
 
-    height: 72px;
+           The "DeepRWA can make a mistake." text is ABOVE this
+           area and therefore remains visible.
+        */
 
-    z-index: 21;
+        .footer-cover {
+            position: fixed;
 
-    background: transparent;
+            left: 0;
+            right: 0;
+            bottom: 0;
 
-    pointer-events: auto;
+            height: 72px;
 
-    cursor: default;
-}
+            background: var(--outer-theme) !important;
+
+            z-index: 20;
+
+            pointer-events: none;
+
+            user-select: none;
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+
+            border: 0;
+            outline: 0;
+
+            box-shadow: none;
+        }
+
+
+        /* =========================================================
+           FOOTER CLICK BLOCKER
+           =========================================================
+
+           Prevents clicks in the bottom covered area.
+
+           It is exactly the same height as the footer cover.
+        */
+
+        .footer-blocker {
+            position: fixed;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            height: 72px;
+
+            z-index: 21;
+
+            background: transparent;
+
+            pointer-events: auto;
+
+            cursor: default;
+        }
+
 
         /* =========================================================
            LOADING OVERLAY
@@ -218,7 +322,11 @@
 
         .loading-overlay {
             position: fixed;
-            inset: 0;
+
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
 
             display: flex;
 
@@ -233,59 +341,109 @@
 
             z-index: 50;
 
-            transition: opacity 0.5s ease;
+            transition:
+                opacity 0.5s ease;
         }
+
 
         .loading-overlay.hidden {
             opacity: 0;
+
             pointer-events: none;
         }
+
+
+        /* =========================================================
+           LOADING SPINNER
+           ========================================================= */
 
         .loading-spinner {
             width: 44px;
             height: 44px;
 
             border: 3px solid #2d2d30;
+
             border-top-color: #ececf1;
 
             border-radius: 50%;
 
-            animation: spin 0.8s linear infinite;
+            animation:
+                spin 0.8s linear infinite;
         }
+
 
         .loading-text {
             color: #6e6e72;
+
             font-size: 14px;
         }
 
+
+        /* =========================================================
+           SPINNER ANIMATION
+           ========================================================= */
+
         @keyframes spin {
+
             to {
                 transform: rotate(360deg);
             }
+
         }
 
+
         /* =========================================================
-           HIDE SCROLLBAR
+           HIDE SCROLLBARS
            ========================================================= */
 
         ::-webkit-scrollbar {
             display: none;
         }
+
     </style>
 </head>
 
+
 <body>
 
-    <!-- Parent page background -->
+
+    <!-- =========================================================
+         PARENT PAGE BACKGROUND
+         ========================================================= -->
+
     <div class="page-background"></div>
 
-    <!-- Taskade -->
-    <div class="agent-container" id="agentContainer">
 
-        <div class="loading-overlay" id="loadingOverlay">
+    <!-- =========================================================
+         TASKADE AGENT
+         ========================================================= -->
+
+    <div
+        class="agent-container"
+        id="agentContainer"
+    >
+
+        <!-- =====================================================
+             LOADING OVERLAY
+             ===================================================== -->
+
+        <div
+            class="loading-overlay"
+            id="loadingOverlay"
+        >
+
             <div class="loading-spinner"></div>
-            <div class="loading-text">Loading DeepRWA...</div>
+
+            <div class="loading-text">
+                Loading DeepRWA...
+            </div>
+
         </div>
+
+
+        <!-- =====================================================
+             TASKADE IFRAME
+             ===================================================== -->
 
         <iframe
             id="agentFrame"
@@ -295,23 +453,49 @@
 
     </div>
 
-    <!-- Paints #1E1E1F around the chat -->
-    <div class="outer-theme-mask"></div>
 
-    <!-- Bottom theme -->
+    <!-- =========================================================
+         OUTER THEME MASKS
+         
+         These cover ONLY the areas surrounding the central
+         Taskade chat.
+
+         The central chat remains completely untouched.
+         ========================================================= -->
+
+    <div class="outer-top"></div>
+
+    <div class="outer-left"></div>
+
+    <div class="outer-right"></div>
+
+
+    <!-- =========================================================
+         BOTTOM THEME
+         ========================================================= -->
+
     <div class="footer-cover"></div>
 
-    <!-- Prevent interaction with footer -->
+
+    <!-- =========================================================
+         FOOTER CLICK BLOCKER
+         ========================================================= -->
+
     <div class="footer-blocker"></div>
 
 
     <script>
+
+        /* =========================================================
+           TASKADE URL
+           ========================================================= */
+
         const AGENT_URL =
             "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
 
 
         /* =========================================================
-           LOADING
+           LOADING HANDLER
            ========================================================= */
 
         function handleLoading() {
@@ -322,31 +506,63 @@
             const iframe =
                 document.getElementById("agentFrame");
 
+
+            /* Show loading screen */
+
             overlay.classList.remove("hidden");
 
-            iframe.addEventListener("load", function () {
 
-                setTimeout(() => {
+            /* Hide it shortly after Taskade loads */
+
+            iframe.addEventListener(
+                "load",
+                function () {
+
+                    setTimeout(
+                        function () {
+
+                            overlay.classList.add("hidden");
+
+                        },
+                        500
+                    );
+
+                },
+                {
+                    once: true
+                }
+            );
+
+
+            /*
+             * Failsafe:
+             * If Taskade takes longer than expected, don't leave
+             * the loading screen permanently visible.
+             */
+
+            setTimeout(
+                function () {
+
                     overlay.classList.add("hidden");
-                }, 500);
 
-            });
-
-            setTimeout(() => {
-                overlay.classList.add("hidden");
-            }, 3000);
+                },
+                3000
+            );
         }
 
 
         /* =========================================================
-           INITIALIZE
+           INITIALIZATION
            ========================================================= */
 
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
 
-            handleLoading();
+                handleLoading();
 
-        });
+            }
+        );
 
     </script>
 
