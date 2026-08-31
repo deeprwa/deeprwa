@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -10,6 +13,7 @@
     <title>DeepRWA</title>
 
     <link rel="icon" href="av.png" type="image/png">
+
 
     <style>
 
@@ -32,59 +36,51 @@
 
         :root {
 
-            /*
-             * Outer page theme.
-             *
-             * This is the dark gray surrounding the Taskade
-             * central chat area.
-             */
+            /* Outer page background */
             --outer-theme: #1e1e1f;
 
-
-            /*
-             * Desktop central Taskade panel.
-             *
-             * 672px matches the desktop appearance you supplied.
-             */
+            /* Taskade desktop panel width */
             --desktop-chat-width: 672px;
 
-
-            /*
-             * Desktop top distance.
-             *
-             * IMPORTANT:
-             * This is CSS viewport space, NOT screenshot space.
-             */
+            /* Desktop top spacing */
             --desktop-chat-top: 40px;
 
-
             /*
-             * Desktop bottom cover.
-             *
-             * Kept for the laptop layout that is currently
-             * looking correct.
+             * IMPORTANT:
+             * This preserves the desktop geometry that was
+             * previously working correctly.
              */
             --desktop-footer-height: 72px;
 
+            /*
+             * Tablet footer shield.
+             */
+            --tablet-footer-height: 48px;
 
             /*
-             * Mobile horizontal breathing room.
+             * Mobile footer shield.
+             *
+             * This is intentionally much smaller than the
+             * desktop 72px value.
+             *
+             * It hides the Powered by Taskade row while leaving
+             * the "DeepRWA can make a mistake" text visible.
              */
-            --mobile-side-space: 24px;
-
+            --mobile-footer-height: 34px;
 
             /*
-             * Mobile top breathing room.
+             * Landscape phone footer shield.
              */
-            --mobile-top-space: 24px;
+            --landscape-footer-height: 30px;
         }
 
 
         /* =========================================================
-           HTML / BODY
+           HTML
            ========================================================= */
 
         html {
+
             width: 100%;
             height: 100%;
 
@@ -94,10 +90,21 @@
             background: var(--outer-theme);
 
             overflow: hidden;
+
+            /*
+             * Prevent browser overscroll from creating strange
+             * white/gray areas around the application.
+             */
+            overscroll-behavior: none;
         }
 
 
+        /* =========================================================
+           BODY
+           ========================================================= */
+
         body {
+
             width: 100%;
             height: 100%;
 
@@ -122,10 +129,11 @@
             color: #ececf1;
 
             /*
-             * Helps mobile browsers account for notches and
-             * rounded display areas.
+             * Mobile safe-area support.
              */
             padding-bottom: env(safe-area-inset-bottom);
+
+            overscroll-behavior: none;
         }
 
 
@@ -134,6 +142,7 @@
            ========================================================= */
 
         .page-background {
+
             position: fixed;
 
             inset: 0;
@@ -145,6 +154,9 @@
 
             z-index: 0;
 
+            /*
+             * Never interfere with Taskade interaction.
+             */
             pointer-events: none;
         }
 
@@ -154,6 +166,7 @@
            ========================================================= */
 
         .agent-container {
+
             position: fixed;
 
             inset: 0;
@@ -180,6 +193,7 @@
            ========================================================= */
 
         .agent-container iframe {
+
             position: absolute;
 
             inset: 0;
@@ -206,6 +220,7 @@
            ========================================================= */
 
         .outer-top {
+
             position: fixed;
 
             top: 0;
@@ -227,6 +242,7 @@
            ========================================================= */
 
         .outer-left {
+
             position: fixed;
 
             top: var(--desktop-chat-top);
@@ -256,6 +272,7 @@
            ========================================================= */
 
         .outer-right {
+
             position: fixed;
 
             top: var(--desktop-chat-top);
@@ -281,62 +298,77 @@
 
 
         /* =========================================================
-           DESKTOP BOTTOM COVER
+           POWERED-BY SHIELD
+           =========================================================
+
+           This is the important part.
+
+           Taskade is loaded inside a cross-origin iframe, so the
+           parent page cannot directly select/hide the Taskade
+           "Powered by Taskade" element.
+
+           Therefore this shield sits ABOVE the iframe.
+
+           pointer-events: auto means:
+
+               - click = blocked
+               - tap = blocked
+               - touch = blocked
+
+           The user cannot accidentally activate the hidden
+           Taskade footer link.
+
+           On desktop we deliberately preserve the previous
+           72px geometry because that was the version you said
+           looked correct on the laptop.
+
+           On mobile this is replaced by a much smaller shield.
            ========================================================= */
 
-        .footer-cover {
+        .powered-by-shield {
+
             position: fixed;
 
             left: 0;
             right: 0;
+
             bottom: 0;
 
             height: var(--desktop-footer-height);
 
-            background: var(--outer-theme) !important;
+            background: var(--outer-theme);
 
-            z-index: 20;
+            z-index: 30;
 
-            pointer-events: none;
+            /*
+             * VERY IMPORTANT:
+             *
+             * Unlike the old version, this is intentionally
+             * clickable/touchable as an overlay so it blocks
+             * interaction with the hidden Taskade link.
+             */
+            pointer-events: auto;
+
+            cursor: default;
 
             user-select: none;
-
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+
+            -webkit-touch-callout: none;
 
             border: 0;
             outline: 0;
 
             box-shadow: none;
-        }
-
-
-        /* =========================================================
-           DESKTOP FOOTER BLOCKER
-           ========================================================= */
-
-        .footer-blocker {
-            position: fixed;
-
-            left: 0;
-            right: 0;
-            bottom: 0;
-
-            height: var(--desktop-footer-height);
-
-            background: transparent;
-
-            z-index: 21;
-
-            pointer-events: auto;
-
-            cursor: default;
 
             /*
-             * Prevent accidental selection/touch behavior.
+             * Prevent the overlay itself from producing any
+             * visual or accessibility content.
              */
-            user-select: none;
+            font-size: 0;
+            line-height: 0;
         }
 
 
@@ -345,6 +377,7 @@
            ========================================================= */
 
         .loading-overlay {
+
             position: fixed;
 
             inset: 0;
@@ -366,10 +399,13 @@
 
             transition:
                 opacity 0.5s ease;
+
+            pointer-events: auto;
         }
 
 
         .loading-overlay.hidden {
+
             opacity: 0;
 
             pointer-events: none;
@@ -381,6 +417,7 @@
            ========================================================= */
 
         .loading-spinner {
+
             width: 44px;
             height: 44px;
 
@@ -396,6 +433,7 @@
 
 
         .loading-text {
+
             color: #6e6e72;
 
             font-size: 14px;
@@ -413,33 +451,24 @@
 
         /* =========================================================
            TABLET
-           =========================================================
-
-           Tablets have much less horizontal space than laptops.
-
-           Instead of forcing a 672px central panel, we let the
-           panel scale naturally.
-
-           The Taskade iframe itself remains full viewport.
-           */
+           ========================================================= */
 
         @media (min-width: 769px) and (max-width: 1100px) {
 
             :root {
 
                 /*
-                 * Smaller top margin for tablet.
+                 * Slightly smaller top spacing.
                  */
                 --desktop-chat-top: 32px;
 
                 /*
-                 * Smaller footer so more Taskade content remains
-                 * visible.
+                 * Responsive tablet footer.
                  */
                 --desktop-footer-height: 48px;
 
                 /*
-                 * Give the central panel responsive side space.
+                 * Never allow the panel to exceed the viewport.
                  */
                 --desktop-chat-width:
                     min(
@@ -448,72 +477,73 @@
                     );
             }
 
+
+            /*
+             * Tablet outer masks use the responsive variables.
+             */
+            .outer-left,
+            .outer-right {
+
+                bottom: var(--desktop-footer-height);
+            }
+
+
+            /*
+             * Tablet shield.
+             *
+             * Small enough not to interfere with the main
+             * Taskade interface.
+             */
+            .powered-by-shield {
+
+                height: var(--tablet-footer-height);
+            }
         }
 
 
         /* =========================================================
            MOBILE
-           =========================================================
-
-           IMPORTANT:
-
-           The desktop masks are DISABLED.
-
-           This is intentional.
-
-           On a phone, the Taskade interface is already responsive.
-           A fixed 672px desktop mask would cover interface elements
-           and make the page look broken.
-
-           We therefore use the iframe normally and only add a
-           small responsive top/side visual treatment.
-           */
+           ========================================================= */
 
         @media (max-width: 768px) {
 
             html,
             body {
+
                 width: 100%;
                 height: 100%;
 
                 overflow: hidden;
 
-                background: var(--outer-theme) !important;
+                background:
+                    var(--outer-theme) !important;
+
+                /*
+                 * Prevent pull-to-refresh/overscroll behavior
+                 * from disturbing the embedded application.
+                 */
+                overscroll-behavior: none;
             }
 
 
-            /*
-             * Hide desktop geometry masks.
-             */
+            /* -----------------------------------------------------
+               REMOVE ALL DESKTOP GEOMETRY
+               ----------------------------------------------------- */
 
             .outer-top,
             .outer-left,
             .outer-right {
-                display: none;
+
+                display: none !important;
             }
 
 
-            /*
-             * IMPORTANT:
-             *
-             * Do NOT cover the bottom 72px on mobile.
-             *
-             * The previous version was covering the Taskade
-             * message input and lower interface on phones.
-             */
-
-            .footer-cover,
-            .footer-blocker {
-                display: none;
-            }
-
-
-            /*
-             * Let the Taskade container use the complete mobile
-             * viewport.
-             */
+            /* -----------------------------------------------------
+               MOBILE TASKADE CONTAINER
+               ----------------------------------------------------- */
 
             .agent-container {
+
                 position: fixed;
 
                 top: 0;
@@ -526,28 +556,94 @@
 
                 overflow: hidden;
 
-                background: var(--outer-theme) !important;
+                background:
+                    var(--outer-theme) !important;
             }
 
 
-            /*
-             * Keep iframe completely responsive.
-             */
+            /* -----------------------------------------------------
+               MOBILE TASKADE IFRAME
+               ----------------------------------------------------- */
 
             .agent-container iframe {
+
                 position: absolute;
 
                 top: 0;
                 left: 0;
+                right: 0;
+                bottom: 0;
 
                 width: 100%;
                 height: 100%;
 
+                margin: 0;
+                padding: 0;
+
                 border: 0;
 
-                background: transparent !important;
+                background:
+                    transparent !important;
             }
 
+
+            /* -----------------------------------------------------
+               MOBILE POWERED-BY SHIELD
+               -----------------------------------------------------
+
+               ONLY 34px.
+
+               This is deliberately NOT 48px, 60px, or 72px.
+
+               The purpose is to hide the Powered by Taskade
+               footer row while leaving:
+
+                   "DeepRWA can make a mistake"
+
+               visible above it.
+
+               The shield also intercepts taps/clicks.
+               ----------------------------------------------------- */
+
+            .powered-by-shield {
+
+                display: block !important;
+
+                position: fixed;
+
+                left: 0;
+                right: 0;
+
+                bottom: 0;
+
+                height: var(--mobile-footer-height);
+
+                background:
+                    var(--outer-theme) !important;
+
+                z-index: 30;
+
+                pointer-events: auto;
+
+                cursor: default;
+
+                touch-action: none;
+
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+
+                -webkit-touch-callout: none;
+
+                border: 0;
+                outline: 0;
+
+                box-shadow: none;
+
+                font-size: 0;
+                line-height: 0;
+            }
         }
 
 
@@ -557,27 +653,25 @@
 
         @media (max-width: 480px) {
 
-            /*
-             * No desktop overlay geometry.
-             */
-            .outer-top,
-            .outer-left,
-            .outer-right,
-            .footer-cover,
-            .footer-blocker {
-                display: none;
+            .powered-by-shield {
+
+                height: 34px;
+
+                /*
+                 * Respect devices that report a bottom safe area.
+                 * The shield remains at the very bottom of the
+                 * usable screen.
+                 */
+                bottom: 0;
             }
 
 
-            /*
-             * Full-width Taskade experience.
-             */
             .agent-container,
             .agent-container iframe {
+
                 width: 100%;
                 height: 100%;
             }
-
         }
 
 
@@ -588,45 +682,111 @@
         @media (max-width: 900px) and (orientation: landscape) {
 
             /*
-             * Landscape phones have very little vertical space.
-             *
-             * Do not place artificial masks over the Taskade
-             * interface.
+             * Remove desktop geometry.
              */
-
             .outer-top,
             .outer-left,
-            .outer-right,
-            .footer-cover,
-            .footer-blocker {
-                display: none;
+            .outer-right {
+
+                display: none !important;
             }
 
-            .agent-container,
-            .agent-container iframe {
+
+            /*
+             * Full landscape viewport.
+             */
+            .agent-container {
+
+                position: fixed;
+
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+
                 width: 100%;
                 height: 100%;
             }
 
+
+            .agent-container iframe {
+
+                width: 100%;
+                height: 100%;
+            }
+
+
+            /*
+             * Landscape screens are vertically short, so reduce
+             * the shield further.
+             */
+            .powered-by-shield {
+
+                display: block !important;
+
+                height:
+                    var(--landscape-footer-height);
+
+                bottom: 0;
+
+                pointer-events: auto;
+
+                touch-action: none;
+            }
         }
 
 
         /* =========================================================
            TOUCH DEVICES
+           =========================================================
+
+           This makes sure a phone/tablet never accidentally gets
+           the desktop 72px shield simply because of its browser
+           width.
            ========================================================= */
 
         @media (hover: none) and (pointer: coarse) {
 
-            /*
-             * Touch devices should never receive the desktop
-             * 72px footer blocker.
-             */
+            .outer-top,
+            .outer-left,
+            .outer-right {
 
-            .footer-cover,
-            .footer-blocker {
-                display: none;
+                display: none !important;
             }
 
+
+            .powered-by-shield {
+
+                display: block;
+
+                height:
+                    var(--mobile-footer-height);
+
+                bottom: 0;
+
+                pointer-events: auto;
+
+                touch-action: none;
+            }
+        }
+
+
+        /* =========================================================
+           EXTRA-WIDE DESKTOP
+           =========================================================
+
+           Keep the central Taskade panel centered.
+           ========================================================= */
+
+        @media (min-width: 1101px) {
+
+            .powered-by-shield {
+
+                height:
+                    var(--desktop-footer-height);
+
+                bottom: 0;
+            }
         }
 
 
@@ -635,10 +795,21 @@
            ========================================================= */
 
         ::-webkit-scrollbar {
+
             display: none;
         }
 
+
+        /*
+         * Firefox.
+         */
+        html {
+
+            scrollbar-width: none;
+        }
+
     </style>
+
 </head>
 
 
@@ -649,7 +820,10 @@
          FULL PAGE BACKGROUND
          ========================================================= -->
 
-    <div class="page-background"></div>
+    <div
+        class="page-background"
+        aria-hidden="true">
+    </div>
 
 
     <!-- =========================================================
@@ -661,6 +835,7 @@
         id="agentContainer"
     >
 
+
         <!-- =====================================================
              LOADING OVERLAY
              ===================================================== -->
@@ -670,7 +845,10 @@
             id="loadingOverlay"
         >
 
-            <div class="loading-spinner"></div>
+            <div
+                class="loading-spinner"
+                aria-hidden="true">
+            </div>
 
             <div class="loading-text">
                 Loading DeepRWA...
@@ -694,52 +872,30 @@
 
 
     <!-- =========================================================
-         DESKTOP OUTER THEME
+         DESKTOP / MOBILE POWERED-BY SHIELD
          =========================================================
 
-         These are intentionally kept OUTSIDE the iframe.
+         IMPORTANT:
 
-         They only operate on desktop/tablet layouts where the
-         central Taskade panel has a constrained width.
+         This element intentionally sits ABOVE the iframe.
+
+         It hides the Taskade footer and captures clicks/touches.
+
+         It contains NO link and NO JavaScript navigation.
+
+         Therefore clicking/tapping it does nothing.
          ========================================================= -->
 
     <div
-        class="outer-top"
-        aria-hidden="true">
-    </div>
-
-
-    <div
-        class="outer-left"
-        aria-hidden="true">
-    </div>
-
-
-    <div
-        class="outer-right"
+        class="powered-by-shield"
+        id="poweredByShield"
         aria-hidden="true">
     </div>
 
 
     <!-- =========================================================
-         DESKTOP BOTTOM THEME
+         JAVASCRIPT
          ========================================================= -->
-
-    <div
-        class="footer-cover"
-        aria-hidden="true">
-    </div>
-
-
-    <!-- =========================================================
-         DESKTOP FOOTER BLOCKER
-         ========================================================= -->
-
-    <div
-        class="footer-blocker"
-        aria-hidden="true">
-    </div>
-
 
     <script>
 
@@ -772,15 +928,12 @@
             /*
              * Show loading screen initially.
              */
-
             overlay.classList.remove("hidden");
 
 
             /*
-             * Once Taskade finishes loading, gently remove the
-             * loading screen.
+             * Hide loading screen when Taskade has loaded.
              */
-
             iframe.addEventListener(
                 "load",
                 function () {
@@ -803,11 +956,7 @@
 
             /*
              * Safety fallback.
-             *
-             * This prevents a slow iframe from leaving the
-             * loading screen permanently visible.
              */
-
             setTimeout(
                 function () {
 
@@ -815,6 +964,105 @@
 
                 },
                 3500
+            );
+        }
+
+
+        /* =========================================================
+           POWERED-BY SHIELD SAFETY
+           =========================================================
+
+           The shield itself has no navigation.
+
+           These handlers deliberately prevent interaction from
+           propagating through the shield to anything underneath it.
+
+           This is an additional safety layer for mouse and touch.
+           ========================================================= */
+
+        function protectPoweredByArea() {
+
+            const shield =
+                document.getElementById("poweredByShield");
+
+
+            if (!shield) {
+                return;
+            }
+
+
+            /*
+             * Mouse interaction.
+             */
+            shield.addEventListener(
+                "click",
+                function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                },
+                true
+            );
+
+
+            /*
+             * Touch interaction.
+             */
+            shield.addEventListener(
+                "touchstart",
+                function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                },
+                {
+                    capture: true,
+                    passive: false
+                }
+            );
+
+
+            shield.addEventListener(
+                "touchend",
+                function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                },
+                {
+                    capture: true,
+                    passive: false
+                }
+            );
+
+
+            /*
+             * Pointer interaction for modern browsers.
+             */
+            shield.addEventListener(
+                "pointerdown",
+                function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                },
+                true
+            );
+
+
+            shield.addEventListener(
+                "pointerup",
+                function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                },
+                true
             );
         }
 
@@ -829,10 +1077,13 @@
 
                 handleLoading();
 
+                protectPoweredByArea();
+
             }
         );
 
     </script>
 
 </body>
+
 </html>
