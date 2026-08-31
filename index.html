@@ -6,7 +6,6 @@
     <title>DeepRWA</title>
     <link rel="icon" href="av.png" type="image/png">
     <style>
-        /* Force everything to #1e1e1f */
         * {
             margin: 0;
             padding: 0;
@@ -85,13 +84,13 @@
             }
         }
 
-        /* ===== FOOTER COVER ===== */
+        /* ===== FOOTER COVER - ORIGINAL HEIGHT (71px) ===== */
         .footer-cover {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 85px;
+            height: 71px;
             background: #1e1e1f !important;
             z-index: 30;
             pointer-events: none;
@@ -113,7 +112,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 85px;
+            height: 71px;
             z-index: 31;
             background: transparent;
             pointer-events: auto;
@@ -124,7 +123,6 @@
             z-index: 1;
         }
 
-        /* Ensure no gaps or margins */
         .agent-container {
             margin: 0;
             padding: 0;
@@ -170,9 +168,8 @@
             }, 3000);
         }
 
-        // ===== FORCE BACKGROUND COLOR AFTER LOAD =====
+        // ===== FORCE BACKGROUND COLOR =====
         function fixBackground() {
-            // Force body background after iframe loads
             document.body.style.background = '#1e1e1f';
             const container = document.querySelector('.agent-container');
             if (container) {
@@ -194,7 +191,6 @@
             }, 1000);
         });
 
-        // Run fixBackground periodically to ensure color stays
         setInterval(fixBackground, 2000);
     </script>
 </body>
