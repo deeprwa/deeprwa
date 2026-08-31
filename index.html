@@ -12,17 +12,32 @@
             box-sizing: border-box;
         }
 
+        /* Force the entire page background */
         html, body {
             background: #1e1e1f !important;
             height: 100vh;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #ececf1;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             display: flex;
             background: #1e1e1f !important;
+        }
+
+        /* Full page background cover */
+        .page-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #1e1e1f;
+            z-index: 0;
+            pointer-events: none;
         }
 
         .agent-container {
@@ -32,27 +47,20 @@
             height: 100vh;
             background: #1e1e1f !important;
             position: relative;
+            z-index: 1;
+            margin: 0;
+            padding: 0;
+            width: 100%;
         }
 
         .agent-container iframe {
             width: 100%;
             flex: 1;
             border: none;
-            background: #1e1e1f;
+            background: #1e1e1f !important;
             pointer-events: auto;
-        }
-
-        /* ===== COVER FOR THE OUTER AREA ===== */
-        /* This covers the area around the iframe to match the chat color */
-        .outer-cover {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #1e1e1f;
-            z-index: -1;
-            pointer-events: none;
+            position: relative;
+            z-index: 1;
         }
 
         /* ===== LOADING OVERLAY ===== */
@@ -143,8 +151,8 @@
     </style>
 </head>
 <body>
-    <!-- Outer Cover - covers the entire page background -->
-    <div class="outer-cover"></div>
+    <!-- Full page background cover -->
+    <div class="page-background"></div>
 
     <div class="agent-container" id="agentContainer">
         <!-- Loading Overlay -->
@@ -184,17 +192,41 @@
             }, 3000);
         }
 
+        // ===== FORCE BACKGROUND =====
+        function fixBackground() {
+            // Force the page background
+            document.documentElement.style.background = '#1e1e1f';
+            document.body.style.background = '#1e1e1f';
+
+            // Force container
+            const container = document.getElementById('agentContainer');
+            if (container) {
+                container.style.background = '#1e1e1f';
+            }
+
+            // Force iframe
+            const iframe = document.getElementById('agentFrame');
+            if (iframe) {
+                iframe.style.background = '#1e1e1f';
+            }
+        }
+
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('loadingOverlay').classList.remove('hidden');
             handleLoading();
+            fixBackground();
         });
 
         window.addEventListener('load', function() {
             setTimeout(() => {
                 document.getElementById('loadingOverlay').classList.add('hidden');
+                fixBackground();
             }, 1000);
         });
+
+        // Run every 500ms to ensure color stays
+        setInterval(fixBackground, 500);
     </script>
 </body>
 </html>
