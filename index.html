@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeepRWA</title>
     <link rel="icon" href="av.png" type="image/png">
+
     <style>
         * {
             margin: 0;
@@ -12,83 +13,218 @@
             box-sizing: border-box;
         }
 
-        html, body {
-            background: #1e1e1f !important;
-            height: 100vh;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #ececf1;
+        :root {
+            --outer-theme: #1e1e1f;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            background: var(--outer-theme) !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         Roboto, sans-serif;
+            color: #ececf1;
         }
 
         body {
-            display: flex;
-            background: #1e1e1f !important;
-            margin: 0;
-            padding: 0;
+            position: relative;
         }
 
-        /* Full page background cover - ensures no gaps */
+        /* =========================================================
+           PARENT PAGE BACKGROUND
+           ========================================================= */
+
         .page-background {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #1e1e1f;
+            inset: 0;
+            background: var(--outer-theme);
             z-index: 0;
             pointer-events: none;
         }
 
-        .agent-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100%;
-            background: #1e1e1f !important;
-            position: relative;
-            z-index: 1;
-            margin: 0;
-            padding: 0;
-            /* Remove any gaps */
-            border: none;
-            outline: none;
-        }
+        /* =========================================================
+           TASKADE IFRAME
+           ========================================================= */
 
-        /* Force iframe to fill the entire container */
-        .agent-container iframe {
-            display: block;
+        .agent-container {
+            position: fixed;
+            inset: 0;
+
             width: 100%;
             height: 100%;
-            flex: 1;
-            border: none;
-            background: transparent !important;
-            pointer-events: auto;
-            position: relative;
-            z-index: 1;
+
             margin: 0;
             padding: 0;
-            /* Remove any default iframe styling */
-            border: none;
-            outline: none;
+
+            background: var(--outer-theme) !important;
+
+            border: 0;
+            outline: 0;
+
+            z-index: 1;
         }
 
-        /* ===== LOADING OVERLAY ===== */
-        .loading-overlay {
+        .agent-container iframe {
             position: absolute;
-            top: 0;
+            inset: 0;
+
+            display: block;
+
+            width: 100%;
+            height: 100%;
+
+            margin: 0;
+            padding: 0;
+
+            border: 0;
+            outline: 0;
+
+            background: transparent !important;
+
+            z-index: 1;
+        }
+
+        /* =========================================================
+           OUTER THEME MASK
+
+           The iframe is cross-origin, so we cannot modify the
+           Taskade page's own #17191C background.
+
+           This layer sits above the iframe and paints the area
+           surrounding the central chat with #1E1E1F.
+
+           pointer-events:none means the Taskade interface remains
+           clickable.
+           ========================================================= */
+
+        .outer-theme-mask {
+            position: fixed;
+            inset: 0;
+
+            z-index: 10;
+
+            pointer-events: none;
+
+            /*
+             * Central chat dimensions from the supplied screenshot:
+             *
+             * Width  ≈ 672px
+             * Top    ≈ 127px
+             * Bottom ≈ 656px
+             *
+             * The transparent center is created using a box-shadow.
+             */
+
+            left: 50%;
+            top: 127px;
+
+            width: 672px;
+            height: 529px;
+
+            transform: translateX(-50%);
+
+            background: transparent;
+
+            box-shadow:
+                0 0 0 100vmax var(--outer-theme);
+        }
+
+        /* =========================================================
+           TOP CORNER / ROUNDED CHAT BOUNDARY
+
+           Keeps the mask from visually covering the rounded
+           corners of the Taskade chat panel.
+           ========================================================= */
+
+        .outer-theme-mask::before {
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            border-radius: 15px;
+
+            /*
+             * The shadow is already doing the main masking.
+             * This keeps the central area transparent.
+             */
+            background: transparent;
+        }
+
+        /* =========================================================
+           FOOTER COVER
+           ========================================================= */
+
+        .footer-cover {
+            position: fixed;
+
             left: 0;
             right: 0;
             bottom: 0;
-            background: #1e1e1f !important;
+
+            height: 112px;
+
+            background: var(--outer-theme) !important;
+
+            z-index: 20;
+
+            pointer-events: none;
+
+            user-select: none;
+
+            border: 0;
+            outline: 0;
+            box-shadow: none;
+        }
+
+        /* =========================================================
+           FOOTER CLICK BLOCKER
+           ========================================================= */
+
+        .footer-blocker {
+            position: fixed;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            height: 112px;
+
+            z-index: 21;
+
+            background: transparent;
+
+            pointer-events: auto;
+
+            cursor: default;
+        }
+
+        /* =========================================================
+           LOADING OVERLAY
+           ========================================================= */
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
             justify-content: center;
-            z-index: 20;
+
             gap: 16px;
+
+            background: var(--outer-theme) !important;
+
+            z-index: 50;
+
             transition: opacity 0.5s ease;
         }
 
@@ -100,9 +236,12 @@
         .loading-spinner {
             width: 44px;
             height: 44px;
+
             border: 3px solid #2d2d30;
             border-top-color: #ececf1;
+
             border-radius: 50%;
+
             animation: spin 0.8s linear infinite;
         }
 
@@ -117,132 +256,91 @@
             }
         }
 
-        /* ===== FOOTER COVER ===== */
-        .footer-cover {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 72px;
-            background: #1e1e1f !important;
-            z-index: 30;
-            pointer-events: none;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            cursor: default;
-            touch-action: none;
-            -webkit-touch-callout: none;
-            opacity: 1;
-            box-shadow: none;
-            border: none;
-        }
+        /* =========================================================
+           HIDE SCROLLBAR
+           ========================================================= */
 
-        /* ===== CLICK BLOCKER ===== */
-        .footer-blocker {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 72px;
-            z-index: 31;
-            background: transparent;
-            pointer-events: auto;
-            cursor: default;
-        }
-
-        /* Remove any possible gaps or margins */
-        .agent-container iframe {
-            display: block;
-        }
-
-        /* Hide scrollbar if any */
         ::-webkit-scrollbar {
             display: none;
         }
     </style>
 </head>
+
 <body>
-    <!-- Full page background cover -->
+
+    <!-- Parent page background -->
     <div class="page-background"></div>
 
+    <!-- Taskade -->
     <div class="agent-container" id="agentContainer">
-        <!-- Loading Overlay -->
+
         <div class="loading-overlay" id="loadingOverlay">
             <div class="loading-spinner"></div>
             <div class="loading-text">Loading DeepRWA...</div>
         </div>
 
-        <!-- Footer Cover -->
-        <div class="footer-cover"></div>
+        <iframe
+            id="agentFrame"
+            src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431"
+            allow="clipboard-read; clipboard-write">
+        </iframe>
 
-        <!-- Footer Blocker -->
-        <div class="footer-blocker"></div>
-
-        <!-- Taskade Agent -->
-        <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
     </div>
 
+    <!-- Paints #1E1E1F around the chat -->
+    <div class="outer-theme-mask"></div>
+
+    <!-- Bottom theme -->
+    <div class="footer-cover"></div>
+
+    <!-- Prevent interaction with footer -->
+    <div class="footer-blocker"></div>
+
+
     <script>
-        const AGENT_URL = "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
+        const AGENT_URL =
+            "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
 
-        // ===== LOADING OVERLAY =====
+
+        /* =========================================================
+           LOADING
+           ========================================================= */
+
         function handleLoading() {
-            const overlay = document.getElementById('loadingOverlay');
-            const iframe = document.getElementById('agentFrame');
 
-            overlay.classList.remove('hidden');
+            const overlay =
+                document.getElementById("loadingOverlay");
 
-            iframe.addEventListener('load', function() {
+            const iframe =
+                document.getElementById("agentFrame");
+
+            overlay.classList.remove("hidden");
+
+            iframe.addEventListener("load", function () {
+
                 setTimeout(() => {
-                    overlay.classList.add('hidden');
+                    overlay.classList.add("hidden");
                 }, 500);
+
             });
 
             setTimeout(() => {
-                overlay.classList.add('hidden');
+                overlay.classList.add("hidden");
             }, 3000);
         }
 
-        // ===== FORCE BACKGROUND =====
-        function fixBackground() {
-            // Force the page background
-            document.documentElement.style.background = '#1e1e1f';
-            document.body.style.background = '#1e1e1f';
 
-            // Force container
-            const container = document.getElementById('agentContainer');
-            if (container) {
-                container.style.background = '#1e1e1f';
-            }
+        /* =========================================================
+           INITIALIZE
+           ========================================================= */
 
-            // Force iframe background to transparent
-            const iframe = document.getElementById('agentFrame');
-            if (iframe) {
-                iframe.style.background = 'transparent';
-                // Ensure iframe fills the container
-                iframe.style.width = '100%';
-                iframe.style.height = '100%';
-            }
-        }
+        document.addEventListener("DOMContentLoaded", function () {
 
-        // ===== INITIALIZE =====
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('loadingOverlay').classList.remove('hidden');
             handleLoading();
-            fixBackground();
+
         });
 
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                fixBackground();
-            }, 1000);
-        });
-
-        // Run every 500ms to ensure color stays
-        setInterval(fixBackground, 500);
     </script>
+
 </body>
 </html>
