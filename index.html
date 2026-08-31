@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -11,6 +13,7 @@
     <title>DeepRWA</title>
 
     <link rel="icon" href="av.png" type="image/png">
+
 
     <style>
 
@@ -33,32 +36,60 @@
 
         :root {
 
-            /* Outer page background */
+            /* Main page background */
             --outer-theme: #1e1e1f;
 
-            /* Desktop central chat width */
+
+            /* -----------------------------------------------------
+               DESKTOP
+               ----------------------------------------------------- */
+
             --desktop-chat-width: 672px;
 
-            /* Desktop top spacing */
+            /*
+             * CSS viewport top spacing.
+             *
+             * This corresponds to the laptop appearance that
+             * was previously correct.
+             */
             --desktop-chat-top: 40px;
 
-            /*
-             * IMPORTANT:
-             *
-             * This is NOT 72px anymore.
-             *
-             * 36px is intentionally used so that:
-             *
-             *     DeepRWA can make a mistake.
-             *
-             * remains visible.
-             *
-             * Only the "Powered by Taskade" row is covered.
-             */
-            --footer-hide-height: 36px;
 
-            /* Tablet footer */
-            --tablet-footer-height: 48px;
+            /*
+             * Space below the central Taskade panel.
+             *
+             * IMPORTANT:
+             * This is NOT a footer blocker.
+             * It simply describes where the central panel ends.
+             */
+            --desktop-panel-bottom: 40px;
+
+
+            /*
+             * Only the Powered by Taskade row is covered.
+             *
+             * The disclaimer above it remains visible.
+             */
+            --desktop-powered-cover-height: 34px;
+
+
+            /* -----------------------------------------------------
+               MOBILE
+               ----------------------------------------------------- */
+
+            --mobile-side-space: 24px;
+
+            --mobile-top-space: 24px;
+
+            /*
+             * Mobile Taskade footer row.
+             *
+             * This is deliberately larger than the previous
+             * value so the remaining ~10px of "Powered by Taskade"
+             * cannot appear.
+             */
+            --mobile-powered-cover-height: 44px;
+
         }
 
 
@@ -67,6 +98,7 @@
            ========================================================= */
 
         html {
+
             width: 100%;
             height: 100%;
 
@@ -84,6 +116,7 @@
            ========================================================= */
 
         body {
+
             width: 100%;
             height: 100%;
 
@@ -108,18 +141,18 @@
             color: #ececf1;
 
             /*
-             * Safe area support for phones with gesture/navigation
-             * areas and display cutouts.
+             * Respect devices with a bottom safe area.
              */
             padding-bottom: env(safe-area-inset-bottom);
         }
 
 
         /* =========================================================
-           FULL PAGE BACKGROUND
+           PAGE BACKGROUND
            ========================================================= */
 
         .page-background {
+
             position: fixed;
 
             inset: 0;
@@ -140,6 +173,7 @@
            ========================================================= */
 
         .agent-container {
+
             position: fixed;
 
             inset: 0;
@@ -166,6 +200,7 @@
            ========================================================= */
 
         .agent-container iframe {
+
             position: absolute;
 
             inset: 0;
@@ -188,10 +223,11 @@
 
 
         /* =========================================================
-           DESKTOP OUTER THEME — TOP
+           DESKTOP OUTER MASK — TOP
            ========================================================= */
 
         .outer-top {
+
             position: fixed;
 
             top: 0;
@@ -209,15 +245,16 @@
 
 
         /* =========================================================
-           DESKTOP OUTER THEME — LEFT
+           DESKTOP OUTER MASK — LEFT
            ========================================================= */
 
         .outer-left {
+
             position: fixed;
 
             top: var(--desktop-chat-top);
 
-            bottom: var(--tablet-footer-height);
+            bottom: var(--desktop-panel-bottom);
 
             left: 0;
 
@@ -238,15 +275,16 @@
 
 
         /* =========================================================
-           DESKTOP OUTER THEME — RIGHT
+           DESKTOP OUTER MASK — RIGHT
            ========================================================= */
 
         .outer-right {
+
             position: fixed;
 
             top: var(--desktop-chat-top);
 
-            bottom: var(--tablet-footer-height);
+            bottom: var(--desktop-panel-bottom);
 
             right: 0;
 
@@ -267,38 +305,62 @@
 
 
         /* =========================================================
-           TASKADE BRANDING COVER
-
-           THIS IS THE IMPORTANT PART.
-
-           The Taskade iframe is cross-origin, so we cannot reach
-           inside it and remove the "Powered by Taskade" element.
-
-           Instead, this very small cover sits ONLY over the bottom
-           branding row.
-
-           36px is deliberately chosen so the disclaimer above it
-           remains visible.
+           POWERED BY TASKADE COVER
+           
+           IMPORTANT:
+           
+           This is NOT a full-page footer.
+           
+           It covers ONLY the bottom Taskade branding row.
+           
+           The disclaimer:
+           
+           "DeepRWA can make a mistake."
+           
+           remains visible above it.
            ========================================================= */
 
-        .footer-cover {
+        .powered-by-cover {
+
             position: fixed;
 
-            left: 0;
-            right: 0;
-            bottom: 0;
+            /*
+             * Central panel horizontal position.
+             */
+            left: 50%;
 
-            height: var(--footer-hide-height);
+            width: var(--desktop-chat-width);
+
+            transform: translateX(-50%);
+
+
+            /*
+             * The central panel ends 40px above the bottom of the
+             * browser viewport on the desktop layout.
+             */
+            bottom: var(--desktop-panel-bottom);
+
+
+            /*
+             * Only cover the Powered by Taskade row.
+             */
+            height: var(--desktop-powered-cover-height);
+
 
             background: var(--outer-theme) !important;
 
-            z-index: 30;
-
             /*
-             * This visual cover does not itself need to receive
-             * clicks. The footer-blocker below handles that.
+             * IMPORTANT:
+             *
+             * This layer MUST receive the click/touch.
+             *
+             * Because the layer sits above the iframe, clicking,
+             * touching, or tapping this area cannot reach the
+             * Taskade "Powered by Taskade" link.
              */
-            pointer-events: none;
+            pointer-events: auto;
+
+            cursor: default;
 
             user-select: none;
             -webkit-user-select: none;
@@ -310,49 +372,7 @@
 
             box-shadow: none;
 
-            /*
-             * Prevent any accidental visual interaction.
-             */
-            touch-action: none;
-        }
-
-
-        /* =========================================================
-           FOOTER CLICK / TOUCH BLOCKER
-
-           IMPORTANT:
-
-           If somebody taps/clicks the dark area where "Powered by
-           Taskade" used to be, the event is stopped here.
-
-           Therefore it cannot activate the Taskade branding link.
-           ========================================================= */
-
-        .footer-blocker {
-            position: fixed;
-
-            left: 0;
-            right: 0;
-            bottom: 0;
-
-            height: var(--footer-hide-height);
-
-            z-index: 31;
-
-            background: transparent;
-
-            pointer-events: auto;
-
-            cursor: default;
-
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-
-            touch-action: none;
-
-            -webkit-touch-callout: none;
+            z-index: 25;
         }
 
 
@@ -361,6 +381,7 @@
            ========================================================= */
 
         .loading-overlay {
+
             position: fixed;
 
             inset: 0;
@@ -370,6 +391,7 @@
             flex-direction: column;
 
             align-items: center;
+
             justify-content: center;
 
             gap: 16px;
@@ -386,6 +408,7 @@
 
 
         .loading-overlay.hidden {
+
             opacity: 0;
 
             pointer-events: none;
@@ -397,6 +420,7 @@
            ========================================================= */
 
         .loading-spinner {
+
             width: 44px;
             height: 44px;
 
@@ -412,6 +436,7 @@
 
 
         .loading-text {
+
             color: #6e6e72;
 
             font-size: 14px;
@@ -428,17 +453,20 @@
 
 
         /* =========================================================
-           TABLETS
+           TABLET
            ========================================================= */
 
         @media (min-width: 769px) and (max-width: 1100px) {
 
             :root {
 
+                /*
+                 * Slightly smaller top spacing.
+                 */
                 --desktop-chat-top: 32px;
 
                 /*
-                 * Keep the central chat responsive.
+                 * Central panel scales down.
                  */
                 --desktop-chat-width:
                     min(
@@ -447,79 +475,56 @@
                     );
 
                 /*
-                 * This affects the side-mask geometry only.
+                 * Preserve breathing room below panel.
                  */
-                --tablet-footer-height: 48px;
-            }
+                --desktop-panel-bottom: 32px;
 
-
-            /*
-             * The branding cover itself remains 36px.
-             *
-             * We do NOT increase it to 48px because that could
-             * hide the disclaimer.
-             */
-            .footer-cover,
-            .footer-blocker {
-                height: var(--footer-hide-height);
+                /*
+                 * Slightly larger cover for tablet variations.
+                 */
+                --desktop-powered-cover-height: 36px;
             }
 
         }
 
 
         /* =========================================================
-           MOBILE DEVICES
+           MOBILE
            ========================================================= */
 
         @media (max-width: 768px) {
 
             html,
             body {
+
                 width: 100%;
                 height: 100%;
 
                 overflow: hidden;
 
-                background: var(--outer-theme) !important;
+                background:
+                    var(--outer-theme) !important;
             }
 
 
-            /*
-             * Disable desktop side masks on phones.
-             *
-             * This prevents the desktop 672px geometry from
-             * interfering with Taskade's responsive mobile layout.
-             */
+            /* -----------------------------------------------------
+               Disable desktop side masks.
+               ----------------------------------------------------- */
+
             .outer-top,
             .outer-left,
             .outer-right {
+
                 display: none;
             }
 
 
-            /*
-             * IMPORTANT:
-             *
-             * DO NOT disable the footer cover on mobile.
-             *
-             * We need the small 36px cover to hide only
-             * "Powered by Taskade".
-             *
-             * The previous version disabled it completely,
-             * which allowed the Taskade branding to remain visible.
-             */
-            .footer-cover,
-            .footer-blocker {
-                display: block;
+            /* -----------------------------------------------------
+               Taskade container
+               ----------------------------------------------------- */
 
-                height: var(--footer-hide-height);
-            }
-
-
-            /*
-             * Full mobile Taskade experience.
-             */
             .agent-container {
+
                 position: fixed;
 
                 top: 0;
@@ -532,34 +537,78 @@
 
                 overflow: hidden;
 
-                background: var(--outer-theme) !important;
+                background:
+                    var(--outer-theme) !important;
             }
 
 
-            /*
-             * Responsive iframe.
-             */
+            /* -----------------------------------------------------
+               Mobile iframe
+               ----------------------------------------------------- */
+
             .agent-container iframe {
+
                 position: absolute;
 
                 top: 0;
                 left: 0;
-                right: 0;
-                bottom: 0;
 
                 width: 100%;
                 height: 100%;
 
                 border: 0;
 
-                background: transparent !important;
+                background:
+                    transparent !important;
+            }
+
+
+            /* -----------------------------------------------------
+               MOBILE POWERED-BY COVER
+               
+               On mobile the Taskade panel reaches the bottom of
+               the visible page.
+               
+               Therefore the cover sits at bottom:0 rather than
+               using the desktop 40px spacing.
+               ----------------------------------------------------- */
+
+            .powered-by-cover {
+
+                left: 0;
+                right: 0;
+
+                width: 100%;
+
+                transform: none;
+
+                bottom: 0;
+
+                /*
+                 * 44px gives enough coverage to completely hide
+                 * the Powered by Taskade row while preserving the
+                 * disclaimer above it.
+                 */
+                height:
+                    var(--mobile-powered-cover-height);
+
+                z-index: 25;
+
+                /*
+                 * Crucial:
+                 *
+                 * Touch/click events stop here.
+                 *
+                 * They never reach the iframe underneath.
+                 */
+                pointer-events: auto;
             }
 
         }
 
 
         /* =========================================================
-           SMALL PHONES
+           VERY SMALL PHONES
            ========================================================= */
 
         @media (max-width: 480px) {
@@ -567,21 +616,35 @@
             /*
              * Keep the Taskade interface completely responsive.
              */
+
             .agent-container,
             .agent-container iframe {
+
                 width: 100%;
                 height: 100%;
             }
 
 
             /*
-             * Still hide ONLY the Taskade branding row.
+             * Slightly stronger footer coverage for very narrow
+             * devices where Taskade's footer can wrap or shift.
              */
-            .footer-cover,
-            .footer-blocker {
-                display: block;
+            .powered-by-cover {
 
-                height: 36px;
+                height: 46px;
+
+                bottom: 0;
+
+                left: 0;
+                right: 0;
+
+                width: 100%;
+
+                transform: none;
+
+                pointer-events: auto;
+
+                z-index: 25;
             }
 
         }
@@ -594,33 +657,47 @@
         @media (max-width: 900px) and (orientation: landscape) {
 
             /*
-             * No desktop geometry.
+             * Landscape phones have very limited vertical space.
+             *
+             * Do not use the desktop geometry.
              */
+
             .outer-top,
             .outer-left,
             .outer-right {
+
                 display: none;
-            }
-
-
-            /*
-             * Keep the small branding cover.
-             *
-             * It remains only 36px so the actual Taskade controls
-             * are not unnecessarily covered.
-             */
-            .footer-cover,
-            .footer-blocker {
-                display: block;
-
-                height: 36px;
             }
 
 
             .agent-container,
             .agent-container iframe {
+
                 width: 100%;
                 height: 100%;
+            }
+
+
+            /*
+             * Keep the Taskade branding hidden without creating
+             * a giant bottom obstruction.
+             */
+            .powered-by-cover {
+
+                left: 0;
+                right: 0;
+
+                width: 100%;
+
+                transform: none;
+
+                bottom: 0;
+
+                height: 40px;
+
+                pointer-events: auto;
+
+                z-index: 25;
             }
 
         }
@@ -633,39 +710,41 @@
         @media (hover: none) and (pointer: coarse) {
 
             /*
-             * DO NOT remove the footer blocker.
+             * Do NOT disable the powered-by cover.
              *
-             * Touch devices must also be prevented from opening
-             * the hidden Taskade branding link.
+             * It is specifically required to intercept touch
+             * events so the hidden Taskade link cannot be opened.
              */
-            .footer-cover,
-            .footer-blocker {
-                display: block;
 
-                height: 36px;
+            .powered-by-cover {
 
-                touch-action: none;
+                pointer-events: auto;
+
+                cursor: default;
             }
 
         }
 
 
         /* =========================================================
-           HIDE OUTER PAGE SCROLLBAR
+           HIDE SCROLLBARS
            ========================================================= */
 
         ::-webkit-scrollbar {
+
             display: none;
         }
 
     </style>
+
 </head>
 
 
 <body>
 
+
     <!-- =========================================================
-         FULL PAGE BACKGROUND
+         PAGE BACKGROUND
          ========================================================= -->
 
     <div
@@ -682,6 +761,7 @@
         class="agent-container"
         id="agentContainer"
     >
+
 
         <!-- =====================================================
              LOADING OVERLAY
@@ -738,35 +818,28 @@
 
 
     <!-- =========================================================
-         SMALL BRANDING COVER
+         POWERED BY TASKADE HIDING LAYER
 
-         Covers ONLY the "Powered by Taskade" row.
-         The disclaimer above remains visible.
+         This covers ONLY the Taskade branding row.
+
+         It intentionally sits ABOVE the iframe.
+
+         pointer-events:auto prevents the hidden Taskade link
+         from receiving mouse/touch events.
          ========================================================= -->
 
     <div
-        class="footer-cover"
+        class="powered-by-cover"
         aria-hidden="true">
     </div>
 
-
-    <!-- =========================================================
-         INVISIBLE CLICK / TOUCH BLOCKER
-
-         Prevents interaction with the hidden Taskade branding.
-         ========================================================= -->
-
-    <div
-        class="footer-blocker"
-        aria-hidden="true">
-    </div>
-
-
-    <!-- =========================================================
-         JAVASCRIPT
-         ========================================================= -->
 
     <script>
+
+
+        /* =========================================================
+           TASKADE URL
+           ========================================================= */
 
         const AGENT_URL =
             "https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431";
@@ -793,12 +866,14 @@
             /*
              * Show loading screen initially.
              */
+
             overlay.classList.remove("hidden");
 
 
             /*
-             * Hide it once Taskade loads.
+             * Remove loading screen after iframe loads.
              */
+
             iframe.addEventListener(
                 "load",
                 function () {
@@ -822,6 +897,7 @@
             /*
              * Safety fallback.
              */
+
             setTimeout(
                 function () {
 
@@ -846,7 +922,10 @@
             }
         );
 
+
     </script>
 
+
 </body>
+
 </html>
