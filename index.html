@@ -14,11 +14,11 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #212121;
+            background: #343541;
             height: 100vh;
             overflow: hidden;
             display: flex;
-            color: #ffffff;
+            color: #ececf1;
         }
 
         .agent-container {
@@ -35,6 +35,8 @@
             flex: 1;
             border: none;
             background: #343541;
+            /* Allow clicks on the iframe EXCEPT in the footer area */
+            pointer-events: auto;
         }
 
         /* ===== LOADING OVERLAY ===== */
@@ -88,30 +90,31 @@
             right: 0;
             height: 71px;
             background: #343541;
-            z-index: 15;
+            z-index: 30;
             pointer-events: none;
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             cursor: default;
-            /* Prevent any text selection or interaction */
             touch-action: none;
             -webkit-touch-callout: none;
-        }
-
-        /* Also prevent any interaction with the iframe in that area */
-        .agent-container iframe {
-            pointer-events: auto;
-        }
-
-        /* Ensure the cover stays on top and blocks everything below it */
-        .footer-cover {
-            /* Prevent any content from showing through */
             opacity: 1;
-            /* Ensure it covers the area completely */
             box-shadow: none;
             border: none;
+        }
+
+        /* Block all clicks in the footer area by covering the iframe */
+        .footer-blocker {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 71px;
+            z-index: 31;
+            background: transparent;
+            pointer-events: auto;
+            cursor: default;
         }
     </style>
 </head>
@@ -125,6 +128,8 @@
 
         <!-- Footer Cover: Hides "Powered by Taskade" -->
         <div class="footer-cover"></div>
+        <!-- Footer Blocker: Prevents clicks on the iframe in the footer area -->
+        <div class="footer-blocker"></div>
 
         <!-- Taskade Agent -->
         <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
