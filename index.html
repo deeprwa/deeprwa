@@ -12,14 +12,17 @@
             box-sizing: border-box;
         }
 
-        /* ALL backgrounds match the chat container color: #1e1e1f */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        /* ALL backgrounds match #1e1e1f */
+        html, body {
             background: #1e1e1f;
             height: 100vh;
             overflow: hidden;
-            display: flex;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #ececf1;
+        }
+
+        body {
+            display: flex;
         }
 
         .agent-container {
@@ -81,7 +84,7 @@
             }
         }
 
-        /* ===== FOOTER COVER - MATCHES CHAT COLOR ===== */
+        /* ===== FOOTER COVER ===== */
         .footer-cover {
             position: absolute;
             bottom: 0;
@@ -118,6 +121,12 @@
 
         .agent-container iframe {
             z-index: 1;
+        }
+
+        /* Make sure no margins or padding create gaps */
+        .agent-container {
+            margin: 0;
+            padding: 0;
         }
     </style>
 </head>
