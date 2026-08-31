@@ -12,7 +12,6 @@
             box-sizing: border-box;
         }
 
-        /* Force everything to #1e1e1f */
         html {
             background: #1e1e1f !important;
             height: 100vh;
@@ -42,14 +41,13 @@
             width: 100%;
         }
 
-        /* The iframe - force its background to match */
+        /* The iframe - force it to be transparent */
         .agent-container iframe {
             width: 100%;
             flex: 1;
             border: none;
-            background: #1e1e1f !important;
+            background: transparent !important;
             pointer-events: auto;
-            /* Ensure the iframe doesn't leak its background */
             position: relative;
             z-index: 1;
         }
@@ -140,12 +138,6 @@
             margin: 0;
             padding: 0;
         }
-
-        /* Force all backgrounds to match */
-        .agent-container,
-        .agent-container * {
-            background-color: #1e1e1f !important;
-        }
     </style>
 </head>
 <body>
@@ -199,21 +191,10 @@
                 container.style.background = '#1e1e1f';
             }
 
-            // Force iframe background
+            // Force iframe background to transparent
             const iframe = document.getElementById('agentFrame');
             if (iframe) {
-                iframe.style.background = '#1e1e1f';
-            }
-
-            // Force any elements inside the iframe to match (if accessible)
-            try {
-                const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
-                if (iframeDoc && iframeDoc.body) {
-                    iframeDoc.body.style.background = '#1e1e1f';
-                    iframeDoc.documentElement.style.background = '#1e1e1f';
-                }
-            } catch (e) {
-                // Cross-origin, ignore
+                iframe.style.background = 'transparent';
             }
         }
 
