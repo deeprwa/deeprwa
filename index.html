@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
     <title>DeepRWA</title>
 
@@ -14,44 +17,94 @@
            GLOBAL RESET
            ========================================================= */
 
-        * {
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
 
         /* =========================================================
-           THEME
+           THEME VARIABLES
            ========================================================= */
 
         :root {
-            --outer-theme: #1e1e1f;
 
             /*
-             * Based on the actual browser viewport coordinates,
-             * NOT the full screenshot coordinates.
+             * Outer page theme.
              *
-             * The Chrome browser toolbar is outside this page.
+             * This is the dark gray surrounding the Taskade
+             * central chat area.
              */
+            --outer-theme: #1e1e1f;
 
-            --chat-width: 672px;
-            --chat-top: 40px;
-            --footer-height: 72px;
+
+            /*
+             * Desktop central Taskade panel.
+             *
+             * 672px matches the desktop appearance you supplied.
+             */
+            --desktop-chat-width: 672px;
+
+
+            /*
+             * Desktop top distance.
+             *
+             * IMPORTANT:
+             * This is CSS viewport space, NOT screenshot space.
+             */
+            --desktop-chat-top: 40px;
+
+
+            /*
+             * Desktop bottom cover.
+             *
+             * Kept for the laptop layout that is currently
+             * looking correct.
+             */
+            --desktop-footer-height: 72px;
+
+
+            /*
+             * Mobile horizontal breathing room.
+             */
+            --mobile-side-space: 24px;
+
+
+            /*
+             * Mobile top breathing room.
+             */
+            --mobile-top-space: 24px;
         }
 
 
         /* =========================================================
-           HTML + BODY
+           HTML / BODY
            ========================================================= */
 
-        html,
+        html {
+            width: 100%;
+            height: 100%;
+
+            margin: 0;
+            padding: 0;
+
+            background: var(--outer-theme);
+
+            overflow: hidden;
+        }
+
+
         body {
             width: 100%;
             height: 100%;
 
             margin: 0;
             padding: 0;
+
+            position: relative;
 
             overflow: hidden;
 
@@ -62,28 +115,28 @@
                 BlinkMacSystemFont,
                 "Segoe UI",
                 Roboto,
+                Helvetica,
+                Arial,
                 sans-serif;
 
             color: #ececf1;
-        }
 
-
-        body {
-            position: relative;
+            /*
+             * Helps mobile browsers account for notches and
+             * rounded display areas.
+             */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
 
         /* =========================================================
-           PARENT PAGE BACKGROUND
+           FULL PAGE BACKGROUND
            ========================================================= */
 
         .page-background {
             position: fixed;
 
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
 
             width: 100%;
             height: 100%;
@@ -103,10 +156,7 @@
         .agent-container {
             position: fixed;
 
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
 
             width: 100%;
             height: 100%;
@@ -120,6 +170,8 @@
             outline: 0;
 
             z-index: 1;
+
+            overflow: hidden;
         }
 
 
@@ -130,10 +182,7 @@
         .agent-container iframe {
             position: absolute;
 
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
 
             display: block;
 
@@ -153,25 +202,8 @@
 
 
         /* =========================================================
-           OUTER THEME — TOP
-           =========================================================
-
-           IMPORTANT:
-
-           The original screenshot's chat begins around screen
-           Y = 127px.
-
-           The browser toolbar takes approximately 87px.
-
-           Therefore:
-
-               127 - 87 = 40px
-
-           So the CSS top position is 40px.
-
-           This is critical because the previous 127px value
-           accidentally covered the DeepRWA header.
-        */
+           DESKTOP OUTER MASK — TOP
+           ========================================================= */
 
         .outer-top {
             position: fixed;
@@ -180,7 +212,7 @@
             left: 0;
             right: 0;
 
-            height: var(--chat-top);
+            height: var(--desktop-chat-top);
 
             background: var(--outer-theme);
 
@@ -191,33 +223,23 @@
 
 
         /* =========================================================
-           OUTER THEME — LEFT
-           =========================================================
-
-           This covers ONLY the left side of the chat.
-
-           The central chat remains untouched.
-        */
+           DESKTOP OUTER MASK — LEFT
+           ========================================================= */
 
         .outer-left {
             position: fixed;
 
-            top: var(--chat-top);
-            bottom: var(--footer-height);
+            top: var(--desktop-chat-top);
+
+            bottom: var(--desktop-footer-height);
+
             left: 0;
-
-            /*
-             * At 1366px viewport width:
-
-                 (1366 - 672) / 2
-                 = 347px
-             */
 
             width:
                 max(
                     0px,
                     calc(
-                        (100vw - var(--chat-width)) / 2
+                        (100vw - var(--desktop-chat-width)) / 2
                     )
                 );
 
@@ -230,21 +252,23 @@
 
 
         /* =========================================================
-           OUTER THEME — RIGHT
+           DESKTOP OUTER MASK — RIGHT
            ========================================================= */
 
         .outer-right {
             position: fixed;
 
-            top: var(--chat-top);
-            bottom: var(--footer-height);
+            top: var(--desktop-chat-top);
+
+            bottom: var(--desktop-footer-height);
+
             right: 0;
 
             width:
                 max(
                     0px,
                     calc(
-                        (100vw - var(--chat-width)) / 2
+                        (100vw - var(--desktop-chat-width)) / 2
                     )
                 );
 
@@ -257,19 +281,8 @@
 
 
         /* =========================================================
-           BOTTOM FOOTER COVER
-           =========================================================
-
-           IMPORTANT:
-
-           Keep this at exactly 72px.
-
-           This leaves the:
-
-               "DeepRWA can make a mistake."
-
-           message visible above it.
-        */
+           DESKTOP BOTTOM COVER
+           ========================================================= */
 
         .footer-cover {
             position: fixed;
@@ -278,7 +291,7 @@
             right: 0;
             bottom: 0;
 
-            height: var(--footer-height);
+            height: var(--desktop-footer-height);
 
             background: var(--outer-theme) !important;
 
@@ -300,7 +313,7 @@
 
 
         /* =========================================================
-           FOOTER CLICK BLOCKER
+           DESKTOP FOOTER BLOCKER
            ========================================================= */
 
         .footer-blocker {
@@ -310,15 +323,20 @@
             right: 0;
             bottom: 0;
 
-            height: var(--footer-height);
-
-            z-index: 21;
+            height: var(--desktop-footer-height);
 
             background: transparent;
+
+            z-index: 21;
 
             pointer-events: auto;
 
             cursor: default;
+
+            /*
+             * Prevent accidental selection/touch behavior.
+             */
+            user-select: none;
         }
 
 
@@ -329,10 +347,7 @@
         .loading-overlay {
             position: fixed;
 
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
 
             display: flex;
 
@@ -346,6 +361,8 @@
             background: var(--outer-theme) !important;
 
             z-index: 50;
+
+            opacity: 1;
 
             transition:
                 opacity 0.5s ease;
@@ -385,10 +402,6 @@
         }
 
 
-        /* =========================================================
-           SPINNER ANIMATION
-           ========================================================= */
-
         @keyframes spin {
 
             to {
@@ -399,7 +412,226 @@
 
 
         /* =========================================================
-           HIDE SCROLLBARS
+           TABLET
+           =========================================================
+
+           Tablets have much less horizontal space than laptops.
+
+           Instead of forcing a 672px central panel, we let the
+           panel scale naturally.
+
+           The Taskade iframe itself remains full viewport.
+           */
+
+        @media (min-width: 769px) and (max-width: 1100px) {
+
+            :root {
+
+                /*
+                 * Smaller top margin for tablet.
+                 */
+                --desktop-chat-top: 32px;
+
+                /*
+                 * Smaller footer so more Taskade content remains
+                 * visible.
+                 */
+                --desktop-footer-height: 48px;
+
+                /*
+                 * Give the central panel responsive side space.
+                 */
+                --desktop-chat-width:
+                    min(
+                        672px,
+                        calc(100vw - 32px)
+                    );
+            }
+
+        }
+
+
+        /* =========================================================
+           MOBILE
+           =========================================================
+
+           IMPORTANT:
+
+           The desktop masks are DISABLED.
+
+           This is intentional.
+
+           On a phone, the Taskade interface is already responsive.
+           A fixed 672px desktop mask would cover interface elements
+           and make the page look broken.
+
+           We therefore use the iframe normally and only add a
+           small responsive top/side visual treatment.
+           */
+
+        @media (max-width: 768px) {
+
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+
+                overflow: hidden;
+
+                background: var(--outer-theme) !important;
+            }
+
+
+            /*
+             * Hide desktop geometry masks.
+             */
+
+            .outer-top,
+            .outer-left,
+            .outer-right {
+                display: none;
+            }
+
+
+            /*
+             * IMPORTANT:
+             *
+             * Do NOT cover the bottom 72px on mobile.
+             *
+             * The previous version was covering the Taskade
+             * message input and lower interface on phones.
+             */
+
+            .footer-cover,
+            .footer-blocker {
+                display: none;
+            }
+
+
+            /*
+             * Let the Taskade container use the complete mobile
+             * viewport.
+             */
+
+            .agent-container {
+                position: fixed;
+
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+
+                width: 100%;
+                height: 100%;
+
+                overflow: hidden;
+
+                background: var(--outer-theme) !important;
+            }
+
+
+            /*
+             * Keep iframe completely responsive.
+             */
+
+            .agent-container iframe {
+                position: absolute;
+
+                top: 0;
+                left: 0;
+
+                width: 100%;
+                height: 100%;
+
+                border: 0;
+
+                background: transparent !important;
+            }
+
+        }
+
+
+        /* =========================================================
+           VERY SMALL PHONES
+           ========================================================= */
+
+        @media (max-width: 480px) {
+
+            /*
+             * No desktop overlay geometry.
+             */
+            .outer-top,
+            .outer-left,
+            .outer-right,
+            .footer-cover,
+            .footer-blocker {
+                display: none;
+            }
+
+
+            /*
+             * Full-width Taskade experience.
+             */
+            .agent-container,
+            .agent-container iframe {
+                width: 100%;
+                height: 100%;
+            }
+
+        }
+
+
+        /* =========================================================
+           LANDSCAPE PHONES
+           ========================================================= */
+
+        @media (max-width: 900px) and (orientation: landscape) {
+
+            /*
+             * Landscape phones have very little vertical space.
+             *
+             * Do not place artificial masks over the Taskade
+             * interface.
+             */
+
+            .outer-top,
+            .outer-left,
+            .outer-right,
+            .footer-cover,
+            .footer-blocker {
+                display: none;
+            }
+
+            .agent-container,
+            .agent-container iframe {
+                width: 100%;
+                height: 100%;
+            }
+
+        }
+
+
+        /* =========================================================
+           TOUCH DEVICES
+           ========================================================= */
+
+        @media (hover: none) and (pointer: coarse) {
+
+            /*
+             * Touch devices should never receive the desktop
+             * 72px footer blocker.
+             */
+
+            .footer-cover,
+            .footer-blocker {
+                display: none;
+            }
+
+        }
+
+
+        /* =========================================================
+           HIDE SCROLLBAR
            ========================================================= */
 
         ::-webkit-scrollbar {
@@ -414,7 +646,7 @@
 
 
     <!-- =========================================================
-         PARENT BACKGROUND
+         FULL PAGE BACKGROUND
          ========================================================= -->
 
     <div class="page-background"></div>
@@ -454,52 +686,59 @@
         <iframe
             id="agentFrame"
             src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431"
-            allow="clipboard-read; clipboard-write">
+            allow="clipboard-read; clipboard-write"
+            title="DeepRWA AI Assistant">
         </iframe>
 
     </div>
 
 
     <!-- =========================================================
-         OUTER THEME MASKS
+         DESKTOP OUTER THEME
+         =========================================================
 
-         These cover ONLY the area surrounding the central
-         Taskade panel.
+         These are intentionally kept OUTSIDE the iframe.
 
-         They DO NOT cover the central panel.
-
-         Therefore the following remain visible:
-
-         ✓ av.png
-         ✓ DeepRWA header
-         ✓ Header divider
-         ✓ DeepRWA logo
-         ✓ DeepRWA title
-         ✓ Welcome message
-         ✓ Suggestion buttons
-         ✓ Message input
-         ✓ "DeepRWA can make a mistake."
+         They only operate on desktop/tablet layouts where the
+         central Taskade panel has a constrained width.
          ========================================================= -->
 
-    <div class="outer-top"></div>
+    <div
+        class="outer-top"
+        aria-hidden="true">
+    </div>
 
-    <div class="outer-left"></div>
 
-    <div class="outer-right"></div>
+    <div
+        class="outer-left"
+        aria-hidden="true">
+    </div>
+
+
+    <div
+        class="outer-right"
+        aria-hidden="true">
+    </div>
 
 
     <!-- =========================================================
-         BOTTOM THEME
+         DESKTOP BOTTOM THEME
          ========================================================= -->
 
-    <div class="footer-cover"></div>
+    <div
+        class="footer-cover"
+        aria-hidden="true">
+    </div>
 
 
     <!-- =========================================================
-         FOOTER CLICK BLOCKER
+         DESKTOP FOOTER BLOCKER
          ========================================================= -->
 
-    <div class="footer-blocker"></div>
+    <div
+        class="footer-blocker"
+        aria-hidden="true">
+    </div>
 
 
     <script>
@@ -525,12 +764,22 @@
                 document.getElementById("agentFrame");
 
 
-            /* Show loading screen */
+            if (!overlay || !iframe) {
+                return;
+            }
+
+
+            /*
+             * Show loading screen initially.
+             */
 
             overlay.classList.remove("hidden");
 
 
-            /* Hide after iframe loads */
+            /*
+             * Once Taskade finishes loading, gently remove the
+             * loading screen.
+             */
 
             iframe.addEventListener(
                 "load",
@@ -553,7 +802,10 @@
 
 
             /*
-             * Safety timeout.
+             * Safety fallback.
+             *
+             * This prevents a slow iframe from leaving the
+             * loading screen permanently visible.
              */
 
             setTimeout(
@@ -562,13 +814,13 @@
                     overlay.classList.add("hidden");
 
                 },
-                3000
+                3500
             );
         }
 
 
         /* =========================================================
-           INITIALIZATION
+           INITIALIZE
            ========================================================= */
 
         document.addEventListener(
