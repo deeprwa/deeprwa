@@ -35,8 +35,6 @@
             flex: 1;
             border: none;
             background: #343541;
-            position: relative;
-            z-index: 1;
         }
 
         /* ===== LOADING OVERLAY ===== */
@@ -96,98 +94,47 @@
             pointer-events: none;
         }
 
-        /* ===== CUSTOM INPUT OVERLAY ===== */
-        /* Hide Taskade's input and show ours */
-        .custom-input-wrapper {
+        /* ===== INPUT FIELD BORDER OVERLAY ===== */
+        /* This creates a visible border around Taskade's input area */
+        .input-border-overlay {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 15;
-            padding: 12px 20px 20px 20px;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            width: calc(100% - 40px);
+            max-width: 768px;
+            height: 48px;
+            border-radius: 12px;
+            border: 2px solid #5a5a5e;
             background: transparent;
             pointer-events: none;
-            display: flex;
-            justify-content: center;
+            transition: border-color 0.3s ease;
         }
 
-        .custom-input-inner {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #40414f;
-            border-radius: 12px;
-            padding: 8px 12px;
-            border: 1px solid #5a5a5e;
-            pointer-events: auto;
-            max-width: 768px;
-            width: 100%;
-            transition: border-color 0.2s;
-        }
-
-        .custom-input-inner:focus-within {
+        /* Make it glow when user types (we can't detect typing, so we use a subtle animation) */
+        .input-border-overlay.active {
             border-color: #1E88E5;
         }
 
-        .custom-input-inner input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #ececf1;
-            font-size: 15px;
-            padding: 8px 4px;
-            outline: none;
-            font-family: inherit;
-            min-height: 32px;
-            width: 100%;
-        }
-
-        .custom-input-inner input::placeholder {
-            color: #8e8e93;
-        }
-
-        .custom-input-inner .send-btn {
-            background: #1E88E5;
-            border: none;
-            color: white;
-            padding: 6px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            font-family: inherit;
-            flex-shrink: 0;
-            line-height: 1.4;
-            transition: background 0.2s;
-            min-width: 56px;
-            text-align: center;
-        }
-
-        .custom-input-inner .send-btn:hover {
-            background: #1565C0;
-        }
-
-        /* Hide Taskade's original input (covered by overlay) */
-        .agent-container iframe {
+        /* Add a subtle glow effect */
+        .input-border-overlay::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            border-radius: 12px;
             pointer-events: none;
         }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
-            .custom-input-wrapper {
-                padding: 8px 12px 12px 12px;
-            }
-            .custom-input-inner {
-                padding: 6px 10px;
-            }
-            .custom-input-inner input {
-                font-size: 14px;
-                padding: 6px 4px;
-            }
-            .custom-input-inner .send-btn {
-                padding: 5px 14px;
-                font-size: 13px;
-                min-width: 48px;
+            .input-border-overlay {
+                width: calc(100% - 24px);
+                bottom: 8px;
+                height: 42px;
             }
             .footer-cover {
                 font-size: 10px;
@@ -209,16 +156,11 @@
         <!-- Footer Cover: "Powered by Taskade" replaced -->
         <div class="footer-cover" id="footerCover">DeepRWA can make a mistake.</div>
 
+        <!-- Input Border Overlay - just visual border around Taskade's input -->
+        <div class="input-border-overlay" id="inputBorder"></div>
+
         <!-- Taskade Agent -->
         <iframe id="agentFrame" src="https://www.taskade.com/a/deep-rwa-01M177XSSH1HNA6FKZM6EBQ431" allow="clipboard-read; clipboard-write"></iframe>
-
-        <!-- Custom Input Overlay -->
-        <div class="custom-input-wrapper" id="customInputWrapper">
-            <div class="custom-input-inner">
-                <input type="text" id="customInput" placeholder="Ask me anything about Rwanda..." autofocus>
-                <button class="send-btn" id="sendBtn">Send</button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -242,67 +184,55 @@
             }, 3000);
         }
 
-        // ===== CUSTOM INPUT =====
-        function setupCustomInput() {
-            const input = document.getElementById('customInput');
-            const sendBtn = document.getElementById('sendBtn');
+        // ===== INPUT BORDER INTERACTION =====
+        function setupInputBorder() {
+            const border = document.getElementById('inputBorder');
             const iframe = document.getElementById('agentFrame');
 
-            function sendMessage() {
-                const message = input.value.trim();
-                if (!message) return;
+            // When user clicks anywhere on the page, focus the input inside iframe
+            document.addEventListener('click', function(e) {
+                // Check if click is near the bottom of the page (where input is)
+                const rect = border.getBoundingClientRect();
+                const clickY = e.clientY;
+                const clickX = e.clientX;
 
-                // Try to send to iframe via postMessage
-                try {
-                    iframe.contentWindow.postMessage({
-                        type: 'user_message',
-                        message: message
-                    }, '*');
-                } catch (e) {}
-
-                // Try to fill Taskade's input
-                try {
-                    const doc = iframe.contentDocument || iframe.contentWindow?.document;
-                    if (doc) {
-                        const inputs = doc.querySelectorAll('input[type="text"], textarea');
-                        for (const inp of inputs) {
-                            if (inp.placeholder && inp.placeholder.toLowerCase().includes('ask')) {
-                                inp.value = message;
-                                inp.dispatchEvent(new Event('input', { bubbles: true }));
-                                const btns = doc.querySelectorAll('button');
-                                for (const btn of btns) {
-                                    if (btn.textContent.toLowerCase().includes('send')) {
-                                        btn.click();
-                                        break;
-                                    }
+                if (clickY > window.innerHeight - 100) {
+                    // Try to focus the input inside iframe
+                    try {
+                        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                        if (doc) {
+                            const inputs = doc.querySelectorAll('input[type="text"], textarea');
+                            for (const inp of inputs) {
+                                if (inp.placeholder && inp.placeholder.toLowerCase().includes('ask')) {
+                                    inp.focus();
+                                    break;
                                 }
-                                break;
                             }
                         }
+                    } catch (e) {}
+                }
+            });
+
+            // Try to detect focus on iframe input
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (doc) {
+                    const inputs = doc.querySelectorAll('input[type="text"], textarea');
+                    for (const inp of inputs) {
+                        if (inp.placeholder && inp.placeholder.toLowerCase().includes('ask')) {
+                            inp.addEventListener('focus', function() {
+                                border.style.borderColor = '#1E88E5';
+                            });
+                            inp.addEventListener('blur', function() {
+                                border.style.borderColor = '#5a5a5e';
+                            });
+                            break;
+                        }
                     }
-                } catch (e) {}
-
-                input.value = '';
-                input.focus();
+                }
+            } catch (e) {
+                // Cross-origin restriction
             }
-
-            sendBtn.addEventListener('click', sendMessage);
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-
-            // Focus input
-            setTimeout(() => input.focus(), 1500);
-
-            // Click on container focuses input
-            document.getElementById('agentContainer').addEventListener('click', function(e) {
-                if (!e.target.closest('.custom-input-inner')) {
-                    input.focus();
-                }
-            });
         }
 
         // ===== HIDE "POWERED BY TASKADE" =====
@@ -314,7 +244,6 @@
                 const doc = iframe.contentDocument || iframe.contentWindow?.document;
                 if (!doc) return;
 
-                // Find and hide any element containing "Powered by Taskade"
                 const observer = new MutationObserver(() => {
                     try {
                         const elements = doc.body.querySelectorAll('*');
@@ -335,7 +264,6 @@
                     characterData: true
                 });
 
-                // Immediate check
                 setTimeout(() => {
                     const elements = doc.body.querySelectorAll('*');
                     for (const el of elements) {
@@ -349,20 +277,17 @@
                 }, 1000);
 
             } catch (e) {
-                // Cross-origin restriction - normal
+                // Cross-origin restriction
             }
         }
 
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', function() {
-            // Show loading overlay
             document.getElementById('loadingOverlay').classList.remove('hidden');
 
-            // Start handlers
             handleLoading();
-            setupCustomInput();
+            setupInputBorder();
 
-            // Try to hide "Powered by Taskade" periodically
             setInterval(hidePoweredBy, 5000);
         });
 
