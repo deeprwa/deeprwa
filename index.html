@@ -46,38 +46,12 @@
 
             --desktop-chat-width: 672px;
 
-            /*
-             * CSS viewport top spacing.
-             *
-             * This corresponds to the laptop appearance that
-             * was previously correct.
-             */
             --desktop-chat-top: 40px;
 
-
-            /*
-             * Space below the central Taskade panel.
-             *
-             * IMPORTANT:
-             * This is NOT a footer blocker.
-             * It simply describes where the central panel ends.
-             */
             --desktop-panel-bottom: 40px;
 
-
-            /*
-             * Only the Powered by Taskade row is covered.
-             *
-             * The disclaimer above it remains visible.
-             */
             --desktop-powered-cover-height: 34px;
 
-
-            /*
-             * Desktop footer height.
-             *
-             * Kept exactly from the current working laptop code.
-             */
             --desktop-footer-height: 72px;
 
 
@@ -91,12 +65,24 @@
 
 
             /*
-             * Mobile Taskade footer row.
+             * Universal Powered-by protection.
              *
-             * This is exactly the value from the currently
-             * working phone code.
+             * This is intentionally larger than the original
+             * mobile 44px value because the Taskade iframe can
+             * position its footer differently depending on:
+             *
+             * - browser
+             * - viewport
+             * - device
+             * - browser zoom
+             * - responsive layout
+             * - orientation
+             * - interface scaling
+             *
+             * The cover remains outside the iframe and therefore
+             * cannot be bypassed by the Taskade link.
              */
-            --mobile-powered-cover-height: 44px;
+            --universal-powered-cover-height: 72px;
 
         }
 
@@ -148,10 +134,6 @@
 
             color: #ececf1;
 
-
-            /*
-             * Respect devices with a bottom safe area.
-             */
             padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -368,65 +350,145 @@
 
             cursor: default;
 
-
-            /*
-             * Prevent accidental selection/touch behavior.
-             */
             user-select: none;
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
 
         /* =========================================================
-           MOBILE POWERED-BY COVER
+           UNIVERSAL POWERED-BY TASKADE COVER
            
            IMPORTANT:
            
-           This element exists so the working mobile version can
-           hide the "Powered by Taskade" row without using the
-           desktop footer system.
+           This is now active on ALL screen sizes.
            
-           It is disabled on desktop/tablet.
+           It is deliberately NOT restricted to:
+           
+           - mobile
+           - tablet
+           - desktop
+           - touch devices
+           - landscape
+           - portrait
+           
+           Therefore browser/device classification cannot cause
+           the Taskade branding to become visible.
            ========================================================= */
 
         .powered-by-cover {
 
             position: fixed;
 
-            left: 50%;
+            left: 0;
+            right: 0;
+            bottom: 0;
 
-            width: var(--desktop-chat-width);
+            width: 100%;
 
-            transform: translateX(-50%);
+            height:
+                calc(
+                    var(--universal-powered-cover-height)
+                    + env(safe-area-inset-bottom)
+                );
 
-            bottom: var(--desktop-panel-bottom);
-
-            height: var(--desktop-powered-cover-height);
-
-            background: var(--outer-theme) !important;
-
-            pointer-events: auto;
-
-            cursor: default;
-
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+            background:
+                var(--outer-theme) !important;
 
             border: 0;
             outline: 0;
 
             box-shadow: none;
 
-            z-index: 25;
+            /*
+             * Must be above the iframe.
+             */
+            z-index: 100;
 
             /*
-             * Hidden by default.
-             *
-             * It is activated only by the mobile media query
-             * below.
+             * The layer itself captures pointer/touch input.
+             * Therefore a hidden Taskade link underneath cannot
+             * be clicked or tapped.
              */
-            display: none;
+            pointer-events: auto;
+
+            cursor: default;
+
+            /*
+             * Prevent selection.
+             */
+            user-select: none;
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+
+            /*
+             * Prevent touch gestures from reaching the iframe.
+             */
+            touch-action: none;
+
+            /*
+             * Always visible.
+             */
+            display: block;
+
+            /*
+             * Make the layer completely opaque.
+             */
+            opacity: 1;
+
+            /*
+             * Prevent accidental text/content rendering.
+             */
+            font-size: 0;
+            line-height: 0;
+
+            /*
+             * Do not allow browser compositing to place the
+             * iframe above this layer.
+             */
+            isolation: isolate;
+        }
+
+
+        /* =========================================================
+           UNIVERSAL POWERED-BY INNER SHIELD
+           
+           A second shield gives additional protection against
+           small variations in iframe/footer positioning.
+           ========================================================= */
+
+        .powered-by-cover::before {
+
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            width: 100%;
+            height: 100%;
+
+            background:
+                var(--outer-theme) !important;
+
+            border: 0;
+            outline: 0;
+
+            pointer-events: auto;
+
+            user-select: none;
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+
+            touch-action: none;
         }
 
 
@@ -452,7 +514,7 @@
 
             background: var(--outer-theme) !important;
 
-            z-index: 50;
+            z-index: 150;
 
             opacity: 1;
 
@@ -514,38 +576,18 @@
 
             :root {
 
-                /*
-                 * Slightly smaller top spacing.
-                 */
                 --desktop-chat-top: 32px;
 
-
-                /*
-                 * Central panel scales down.
-                 */
                 --desktop-chat-width:
                     min(
                         672px,
                         calc(100vw - 32px)
                     );
 
-
-                /*
-                 * Preserve breathing room below panel.
-                 */
                 --desktop-panel-bottom: 32px;
 
-
-                /*
-                 * Slightly larger cover for tablet variations.
-                 */
                 --desktop-powered-cover-height: 36px;
 
-
-                /*
-                 * Preserve the current working tablet footer
-                 * behavior exactly.
-                 */
                 --desktop-footer-height: 48px;
             }
 
@@ -555,11 +597,11 @@
         /* =========================================================
            MOBILE
            
-           THIS SECTION USES THE WORKING PHONE CODE.
+           IMPORTANT:
            
-           Desktop masks are disabled.
-           Desktop footer cover/blocker are disabled.
-           The mobile Powered-by cover is enabled.
+           The old mobile-only Powered-by cover is no longer
+           necessary because the universal cover above is active
+           on every device.
            ========================================================= */
 
         @media (max-width: 768px) {
@@ -643,92 +685,25 @@
                     transparent !important;
             }
 
-
-            /* -----------------------------------------------------
-               MOBILE POWERED-BY COVER
-               
-               This is the working phone behavior.
-               ----------------------------------------------------- */
-
-            .powered-by-cover {
-
-                display: block;
-
-                left: 0;
-                right: 0;
-
-                width: 100%;
-
-                transform: none;
-
-                bottom: 0;
-
-
-                /*
-                 * 44px exactly as in the working phone code.
-                 */
-                height:
-                    var(--mobile-powered-cover-height);
-
-                z-index: 25;
-
-
-                /*
-                 * Touch/click events stop here.
-                 *
-                 * They never reach the iframe underneath.
-                 */
-                pointer-events: auto;
-
-                cursor: default;
-            }
-
         }
 
 
         /* =========================================================
            VERY SMALL PHONES
+           
+           Do NOT change the universal cover based on width.
+           
+           This prevents a particular phone width from accidentally
+           exposing the Taskade branding.
            ========================================================= */
 
         @media (max-width: 480px) {
-
-            /*
-             * Keep the Taskade interface completely responsive.
-             */
 
             .agent-container,
             .agent-container iframe {
 
                 width: 100%;
                 height: 100%;
-            }
-
-
-            /*
-             * Slightly stronger footer coverage for very narrow
-             * devices where Taskade's footer can wrap or shift.
-             *
-             * EXACTLY 46px from the working phone code.
-             */
-
-            .powered-by-cover {
-
-                display: block;
-
-                height: 46px;
-
-                bottom: 0;
-
-                left: 0;
-                right: 0;
-
-                width: 100%;
-
-                transform: none;
-
-                pointer-events: auto;
-
-                z-index: 25;
             }
 
         }
@@ -740,12 +715,6 @@
 
         @media (max-width: 900px) and (orientation: landscape) {
 
-            /*
-             * Landscape phones have very limited vertical space.
-             *
-             * Do not use the desktop geometry.
-             */
-
             .outer-top,
             .outer-left,
             .outer-right {
@@ -753,10 +722,6 @@
                 display: none;
             }
 
-
-            /*
-             * Desktop footer system remains disabled.
-             */
 
             .footer-cover,
             .footer-blocker {
@@ -772,55 +737,26 @@
                 height: 100%;
             }
 
-
-            /*
-             * Keep the Taskade branding hidden without creating
-             * a giant bottom obstruction.
-             *
-             * EXACTLY 40px from the working phone code.
-             */
-
-            .powered-by-cover {
-
-                display: block;
-
-                left: 0;
-                right: 0;
-
-                width: 100%;
-
-                transform: none;
-
-                bottom: 0;
-
-                height: 40px;
-
-                pointer-events: auto;
-
-                z-index: 25;
-            }
-
         }
 
 
         /* =========================================================
            TOUCH DEVICES
+           
+           No special Powered-by behavior is needed here anymore.
+           
+           The universal cover already intercepts touch.
            ========================================================= */
 
         @media (hover: none) and (pointer: coarse) {
-
-            /*
-             * Do NOT disable the powered-by cover.
-             *
-             * It is specifically required to intercept touch
-             * events so the hidden Taskade link cannot be opened.
-             */
 
             .powered-by-cover {
 
                 display: block;
 
                 pointer-events: auto;
+
+                touch-action: none;
 
                 cursor: default;
             }
@@ -940,11 +876,30 @@
 
 
     <!-- =========================================================
-         MOBILE POWERED BY TASKADE HIDING LAYER
+         UNIVERSAL TASKADE BRANDING COVER
          
-         This is inactive on desktop/tablet.
+         This layer is intentionally outside the Taskade iframe.
          
-         It becomes active only under the mobile media queries.
+         It is active on:
+         
+         - desktop
+         - laptop
+         - tablet
+         - iPad
+         - Android
+         - iPhone
+         - portrait
+         - landscape
+         - touch browsers
+         - mouse browsers
+         - Chrome
+         - Safari
+         - Firefox
+         - Edge
+         - responsive/emulated browser dimensions
+         
+         It also intercepts pointer/touch input so the covered
+         Taskade branding cannot be clicked.
          ========================================================= -->
 
     <div
@@ -1028,6 +983,7 @@
                 },
                 3500
             );
+
         }
 
 
